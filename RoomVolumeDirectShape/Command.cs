@@ -23,7 +23,7 @@ namespace RoomVolumeDirectShape
     /// Category assigned to the room volume direct shape
     /// </summary>
     ElementId _id_category_for_direct_shape
-      = new ElementId( BuiltInCategory.OST_StructuralFraming );
+      = new ElementId( BuiltInCategory.OST_GenericModel );
 
     /// <summary>
     /// DirectShape parameter to populate with JSON
@@ -229,6 +229,7 @@ namespace RoomVolumeDirectShape
           ds.ApplicationDataId = r.UniqueId;
           ds.SetShape( geo.ToList<GeometryObject>() );
           ds.get_Parameter( _bip_properties ).Set( json );
+          ds.Name = r.Name;
         }
         tx.Commit();
       }
