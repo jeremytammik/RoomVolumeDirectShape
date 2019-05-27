@@ -28,47 +28,35 @@ namespace RoomVolumeDirectShape
     BuiltInParameter _bip_properties 
       = BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS;
 
-    static string GetElementPropertiesJson( Element e )
-    {
-      return string.Empty;
-    }
-
     /// <summary>
     /// Return parameter value formatted as string
     /// </summary>
     static string ParameterToString( Parameter p )
     {
-      string val = "none";
+      string s = "null";
 
-      if( p == null )
+      if( p != null )
       {
-        return val;
+        switch( p.StorageType )
+        {
+          case StorageType.Double:
+            s = p.AsDouble().ToString( "0.##" );
+            break;
+          case StorageType.Integer:
+            s = p.AsInteger().ToString();
+            break;
+          case StorageType.String:
+            s = p.AsString();
+            break;
+          case StorageType.ElementId:
+            s = p.AsElementId().IntegerValue.ToString();
+            break;
+          case StorageType.None:
+            s = "none";
+            break;
+        }
       }
-
-      // To get to the parameter value, we need to pause it depending on its storage type
-
-      switch( p.StorageType )
-      {
-        case StorageType.Double:
-          double dVal = p.AsDouble();
-          val = dVal.ToString();
-          break;
-        case StorageType.Integer:
-          int iVal = p.AsInteger();
-          val = iVal.ToString();
-          break;
-        case StorageType.String:
-          string sVal = p.AsString();
-          val = sVal;
-          break;
-        case StorageType.ElementId:
-          ElementId idVal = p.AsElementId();
-          val = idVal.IntegerValue.ToString();
-          break;
-        case StorageType.None:
-          break;
-      }
-      return val;
+      return s;
     }
 
     /// <summary>
@@ -76,35 +64,38 @@ namespace RoomVolumeDirectShape
     /// deemed relevant for the given element
     /// in string form.
     /// </summary>
-    List<string> GetParamValues( Element e )
+    static List<string> GetParamValues( Element e )
     {
       // Two choices: 
       // Element.Parameters property -- Retrieves 
-      // a set containing all  the parameters.
+      // a set containing all the parameters.
       // GetOrderedParameters method -- Gets the 
       // visible parameters in order.
 
-      IList<Parameter> ps = e.GetOrderedParameters();
+      //IList<Parameter> ps = e.GetOrderedParameters();
+
+      ParameterSet pset = e.Parameters;
 
       List<string> param_values = new List<string>(
-        ps.Count );
+        pset.Size );
 
-      foreach( Parameter p in ps )
+      foreach( Parameter p in pset )
       {
         // AsValueString displays the value as the 
         // user sees it. In some cases, the underlying
         // database value returned by AsInteger, AsDouble,
-        // etc., may be more relevant.
+        // etc., may be more relevant, as done by 
+        // ParameterToString
 
         param_values.Add( string.Format( "{0}={1}",
-          p.Definition.Name, p.AsValueString() ) );
+          p.Definition.Name, ParameterToString( p ) ) );
       }
       return param_values;
     }
 
     static string GetRoomPropertiesJson( Room r )
     {
-      return GetElementPropertiesJson( r );
+      List<string> param_values = GetParamValues( r );
 
       double baseOffset = r.BaseOffset;
       double limitOffset = r.LimitOffset;
@@ -112,6 +103,7 @@ namespace RoomVolumeDirectShape
       string upperLimit = r.UpperLimit.Name;
       double volume = r.Volume;
 
+      return string.Join( "; ", null );
   }
 
   public Result Execute(
