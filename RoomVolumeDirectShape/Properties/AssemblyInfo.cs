@@ -36,6 +36,7 @@ using System.Runtime.InteropServices;
 // History:
 //
 // 2019-05-27 2020.0.0.0 initial rough draft ready for testing and refining
+// 2019-05-27 2020.0.0.1 implemented first working version
 //
-[assembly: AssemblyVersion( "2020.0.0.0" )]
-[assembly: AssemblyFileVersion( "2020.0.0.0" )]
+[assembly: AssemblyVersion( "2020.0.0.1" )]
+[assembly: AssemblyFileVersion( "2020.0.0.1" )]
