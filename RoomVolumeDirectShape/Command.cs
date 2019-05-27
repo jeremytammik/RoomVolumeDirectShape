@@ -23,7 +23,7 @@ namespace RoomVolumeDirectShape
     /// Category assigned to the room volume direct shape
     /// </summary>
     ElementId _id_category_for_direct_shape
-      = new ElementId( BuiltInCategory.OST_GenericModel );
+      = new ElementId( BuiltInCategory.OST_StructuralFraming );
 
     /// <summary>
     /// DirectShape parameter to populate with JSON
