@@ -37,6 +37,7 @@ using System.Runtime.InteropServices;
 //
 // 2019-05-27 2020.0.0.0 initial rough draft ready for testing and refining
 // 2019-05-27 2020.0.0.1 implemented first working version
+// 2019-05-27 2020.0.0.2 properly set direct shape `Name` property
 //
-[assembly: AssemblyVersion( "2020.0.0.1" )]
-[assembly: AssemblyFileVersion( "2020.0.0.1" )]
+[assembly: AssemblyVersion( "2020.0.0.2" )]
+[assembly: AssemblyFileVersion( "2020.0.0.2" )]
