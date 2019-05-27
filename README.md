@@ -4,10 +4,13 @@ Revit C# .NET add-in creating DirectShape elements representing room volume.
 
 The RoomVolumeDirectShape add-in performs the following simple steps:
 
-- Retrieve all rooms in the BIM using a filtered element collector
-- Query each room for its closed shell using the [ClosedShell API call](https://www.revitapidocs.com/2020/1a510aef-63f6-4d32-c0ff-a8071f5e23b8.htm)
+- Retrieve all rooms in the BIM using a filtered element collector, then, for each room:
+- Query each room for its closed shell using
+the [ClosedShell API call](https://www.revitapidocs.com/2020/1a510aef-63f6-4d32-c0ff-a8071f5e23b8.htm)
 - Generate a [DirectShape element](https://www.revitapidocs.com/2020/bfbd137b-c2c2-71bb-6f4a-992d0dcf6ea8.htm) representing the geometry
 - Query each room for all its properties, mostly stored in parameters
+(cf., [getting all parameter values](https://thebuildingcoder.typepad.com/blog/2018/05/getting-all-parameter-values.html)
+and [retrieving parameter values from an element](https://thebuildingcoder.typepad.com/blog/2018/05/getting-all-parameter-values.html#5))
 - Generate a JSON string representing a dictionary of the room properties
 - Store the room property JSON string in the DirectShape Comment property
 
@@ -51,11 +54,17 @@ The ideal way forward is exactly what you describe: A native C# Revit API that f
 
 No intermediate formats, no UI, just straight automation work.
 
+
+## Solution
+
 the [Revit API discussion forum](http://forums.autodesk.com/t5/revit-api-forum/bd-p/160) thread
 
 It is explained in detail 
 in [The Building Coder](https://thebuildingcoder.typepad.com) discussion 
 on ...
+
+
+## Sample Run
 
 Sample model 3D view:
 
