@@ -15,11 +15,15 @@ namespace RoomVolumeDirectShape
   [Transaction( TransactionMode.Manual )]
   public class Command : IExternalCommand
   {
+    // Cannot use OST_Rooms; DirectShape.CreateElement 
+    // throws ArgumentExceptionL: Element id categoryId 
+    // may not be used as a DirectShape category.
+
     /// <summary>
     /// Category assigned to the room volume direct shape
     /// </summary>
     ElementId _id_category_for_direct_shape
-      = new ElementId( BuiltInCategory.OST_Rooms );
+      = new ElementId( BuiltInCategory.OST_GenericModel );
 
     /// <summary>
     /// DirectShape parameter to populate with JSON
