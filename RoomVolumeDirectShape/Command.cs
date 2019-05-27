@@ -29,6 +29,42 @@ namespace RoomVolumeDirectShape
       = BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS;
 
     /// <summary>
+    /// Return parameter storage type abbreviation
+    /// </summary>
+    static char ParameterStorageTypeChar( 
+      Parameter p )
+    {
+      if(null == p )
+      {
+        throw new ArgumentNullException( 
+          "p", "expected non-null parameter" );
+      }
+
+      char abbreviation = '?';
+
+      switch( p.StorageType )
+      {
+        case StorageType.Double:
+          abbreviation = 'r'; // real number
+          break;
+        case StorageType.Integer:
+          abbreviation = 'n'; // integer number
+          break;
+        case StorageType.String:
+          abbreviation = 's'; // string
+          break;
+        case StorageType.ElementId:
+          abbreviation = 'e'; // element id
+          break;
+        case StorageType.None:
+          throw new ArgumentOutOfRangeException(
+            "p", "expected valid parameter "
+            + "storage type, not 'None'" );
+      }
+      return abbreviation;
+    }
+
+    /// <summary>
     /// Return parameter value formatted as string
     /// </summary>
     static string ParameterToString( Parameter p )
@@ -60,11 +96,11 @@ namespace RoomVolumeDirectShape
     }
 
     /// <summary>
-    /// Return all the parameter values  
-    /// deemed relevant for the given element
-    /// in string form.
+    /// Return all the element parameter values in a
+    /// dictionary mapping parameter names to values
     /// </summary>
-    static List<string> GetParamValues( Element e )
+    static Dictionary<string,string> GetParamValues( 
+      Element e )
     {
       // Two choices: 
       // Element.Parameters property -- Retrieves 
@@ -76,8 +112,8 @@ namespace RoomVolumeDirectShape
 
       ParameterSet pset = e.Parameters;
 
-      List<string> param_values = new List<string>(
-        pset.Size );
+      Dictionary<string, string> d 
+        = new Dictionary<string, string>( pset.Size );
 
       foreach( Parameter p in pset )
       {
@@ -87,15 +123,19 @@ namespace RoomVolumeDirectShape
         // etc., may be more relevant, as done by 
         // ParameterToString
 
-        param_values.Add( string.Format( "{0}={1}",
-          p.Definition.Name, ParameterToString( p ) ) );
+        string key = string.Format( "{0}({1})",
+          p.Definition.Name, 
+          ParameterStorageTypeChar( p ) );
+
+        d.Add( key, ParameterToString( p ) );
       }
-      return param_values;
+      return d;
     }
 
     static string GetRoomPropertiesJson( Room r )
     {
-      List<string> param_values = GetParamValues( r );
+      Dictionary<string, string> param_values 
+        = GetParamValues( r );
 
       double baseOffset = r.BaseOffset;
       double limitOffset = r.LimitOffset;

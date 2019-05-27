@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle( "RoomVolumeDirectShape" )]
-[assembly: AssemblyDescription( "Revit Add-In Description for RoomVolumeDirectShape" )]
+[assembly: AssemblyDescription( "Revit C# .NET Add-In generating DirectShape elements to represent room volumes" )]
 [assembly: AssemblyConfiguration( "" )]
 [assembly: AssemblyCompany( "Autodesk Inc." )]
 [assembly: AssemblyProduct( "RoomVolumeDirectShape Revit C# .NET Add-In" )]
