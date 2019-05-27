@@ -229,7 +229,7 @@ namespace RoomVolumeDirectShape
           ds.ApplicationDataId = r.UniqueId;
           ds.SetShape( geo.ToList<GeometryObject>() );
           ds.get_Parameter( _bip_properties ).Set( json );
-          ds.Name = r.Name;
+          ds.Name = "Room volume for " + r.Name;
         }
         tx.Commit();
       }
