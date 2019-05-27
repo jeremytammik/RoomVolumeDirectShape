@@ -214,8 +214,13 @@ namespace RoomVolumeDirectShape
         foreach( Room r in rooms )
         {
           Debug.Print( r.Name );
+
           GeometryElement geo = r.ClosedShell;
-          string json_properties = GetRoomPropertiesJson( r );
+
+          Dictionary<string, string> param_values
+            = GetParamValues( r );
+
+          string json = FormatDictAsJson( param_values );
 
           DirectShape ds = DirectShape.CreateElement(
             doc, _id_category_for_direct_shape );
@@ -223,13 +228,10 @@ namespace RoomVolumeDirectShape
           ds.ApplicationId = id_addin;
           ds.ApplicationDataId = r.UniqueId;
           ds.SetShape( geo.ToList<GeometryObject>() );
-          ds.get_Parameter( _bip_properties ).Set( 
-            json_properties );
+          ds.get_Parameter( _bip_properties ).Set( json );
         }
-
         tx.Commit();
       }
-
       return Result.Succeeded;
     }
   }
