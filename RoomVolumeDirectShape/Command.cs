@@ -1,12 +1,13 @@
 #region Namespaces
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
 #endregion
 
 namespace RoomVolumeDirectShape
@@ -24,33 +25,25 @@ namespace RoomVolumeDirectShape
       Application app = uiapp.Application;
       Document doc = uidoc.Document;
 
-      // Access current selection
-
-      Selection sel = uidoc.Selection;
-
-      // Retrieve elements from database
-
-      FilteredElementCollector col
+      IEnumerable<Room> rooms 
         = new FilteredElementCollector( doc )
-          .WhereElementIsNotElementType()
-          .OfCategory( BuiltInCategory.INVALID )
-          .OfClass( typeof( Wall ) );
-
-      // Filtered element collector is iterable
-
-      foreach( Element e in col )
-      {
-        Debug.Print( e.Name );
-      }
-
-      // Modify document within a transaction
+        .WhereElementIsNotElementType()
+        .OfClass( typeof( SpatialElement ) )
+        .Where( e => e.GetType() == typeof( Room ) )
+        .Cast<Room>();
 
       using( Transaction tx = new Transaction( doc ) )
       {
-        tx.Start( "Transaction Name" );
+        tx.Start( "Generate Direct Shape Elements "
+          + "Representing Room Volumes" );
+
+        foreach( Room r in rooms )
+        {
+          Debug.Print( r.Name );
+        }
+
         tx.Commit();
       }
-
       return Result.Succeeded;
     }
   }
