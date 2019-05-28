@@ -16,17 +16,9 @@ and [retrieving parameter values from an element](https://thebuildingcoder.typep
 
 ## Motivation
 
-This add-in was inspired by a request 
-by Mustapha Bismi of [Vinci Facilities](https://www.vinci-facilities.com)
-for *Génération des volumes Revit*:
-
-Aujourd’hui, notre workflow consiste à prendre la géométrie des pièces Revit, générer des fichiers SAT, puis recréer des volumes Revit à partir de cette géométrie.
-
-Dans le cadre d’une automatisation, c’est pas terrible terrible.
+This add-in was inspired by the following request:
 
 The context: We are building digital twins out of BIM data. To do so, we use Revit, Dynamo, and Forge.
-
-You can check what we do with that on our [twinops website](https://www.twinops.com).
 
 The issue: We rely on the rooms in Revit to perform a bunch of tasks (reassign equipment localization, rebuild a navigation tree, and so on).
 
@@ -57,19 +49,24 @@ No intermediate formats, no UI, just straight automation work.
 
 ## Solution
 
-the [Revit API discussion forum](http://forums.autodesk.com/t5/revit-api-forum/bd-p/160) thread
-
-It is explained in detail 
+The solution is explained in detail 
 in [The Building Coder](https://thebuildingcoder.typepad.com) discussion 
-on ...
+on [`DirectShape` element to represent room volume](https://thebuildingcoder.typepad.com/blog/2019/05/generate-directshape-element-to-represent-room-volume.html).
 
 
 ## Sample Run
 
-Sample model 3D view:
+I tested this in the well-known standard Revit *rac_basic_sample_project.rvt* sample model:
 
-![Sample model 3D view](img/section_cut_geo_3d.png)
+<center>
+<img src="img/rac_basic_sample_project.png" alt="Revit Architecture rac_basic_sample_project.rvt" width="699">
+</center>
 
+Isolated, the resulting direct shapes look like this:
+
+<center>
+<img src="img/rac_basic_sample_project_room_volumes.png" alt="DirectShape elements representing room volumes" width="699">
+</center>
 
 
 
