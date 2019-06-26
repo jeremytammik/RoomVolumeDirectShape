@@ -236,7 +236,7 @@ namespace RoomVolumeDirectShape
 
       int nFaces = 0;
       int nTriangles = 0;
-      int nVertices = 0;
+      //int nVertices = 0;
       List<XYZ> vertices = new List<XYZ>( 3 );
 
       foreach( GeometryObject obj in geo )
@@ -315,7 +315,7 @@ namespace RoomVolumeDirectShape
             }
             builder.CloseConnectedFaceSet();
             builder.Target = TessellatedShapeBuilderTarget.AnyGeometry; // Solid failed
-            builder.Fallback = TessellatedShapeBuilderFallback.Salvage; // use Abort if target is Solid
+            builder.Fallback = TessellatedShapeBuilderFallback.Mesh; // use Abort if target is Solid
             builder.Build();
             result = builder.GetBuildResult();
           }
