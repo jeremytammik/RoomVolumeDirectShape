@@ -234,6 +234,9 @@ namespace RoomVolumeDirectShape
         = new Dictionary<XYZ, KeyValuePair<XYZ, int>>(
           new XyzEqualityComparer() );
 
+      int nFaces = 0;
+      int nVertices = 0;
+
       foreach( GeometryObject obj in geo )
       {
         Solid solid = obj as Solid;
@@ -275,14 +278,16 @@ namespace RoomVolumeDirectShape
                   }
 
                   loopVertices.Add( q );
+                  ++nVertices;
                 }
                 builder.AddFace( new TessellatedFace(
                   loopVertices, materialId ) );
+                ++nFaces;
               }
             }
             builder.CloseConnectedFaceSet();
-            builder.Target = TessellatedShapeBuilderTarget.Solid;
-            builder.Fallback = TessellatedShapeBuilderFallback.Abort;
+            builder.Target = TessellatedShapeBuilderTarget.AnyGeometry; // Solid failed
+            builder.Fallback = TessellatedShapeBuilderFallback.Salvage; // use Abort if target is Solid
             builder.Build();
             result = builder.GetBuildResult();
           }
