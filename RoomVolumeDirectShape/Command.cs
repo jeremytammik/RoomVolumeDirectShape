@@ -324,7 +324,7 @@ namespace RoomVolumeDirectShape
           #endregion // Fix the shape
 
           shape = CopyGeometry(
-            geo, null );
+            geo, ElementId.InvalidElementId );
 
           Dictionary<string, string> param_values
             = GetParamValues( r );
