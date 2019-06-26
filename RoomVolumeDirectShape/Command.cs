@@ -36,18 +36,18 @@ namespace RoomVolumeDirectShape
     /// Return a JSON string representing a dictionary
     /// mapping string key to string value.
     /// </summary>
-    static string FormatDictAsJson( 
+    static string FormatDictAsJson(
       Dictionary<string, string> d )
     {
       List<string> keys = new List<string>( d.Keys );
       keys.Sort();
 
-      List<string> key_vals = new List<string>( 
+      List<string> key_vals = new List<string>(
         keys.Count );
 
       foreach( string key in keys )
       {
-        key_vals.Add( 
+        key_vals.Add(
           string.Format( "\"{0}\" : \"{1}\"",
             key, d[key] ) );
       }
@@ -187,6 +187,54 @@ namespace RoomVolumeDirectShape
       return FormatDictAsJson( param_values );
     }
 
+    /// <summary>
+    /// Create a new list of geometry objects from the given input
+    /// </summary>
+    static IList<GeometryObject> CopyGeometry(
+      GeometryElement geo,
+      ElementId materialId )
+    {
+      TessellatedShapeBuilderResult result = null;
+
+      TessellatedShapeBuilder builder
+        = new TessellatedShapeBuilder();
+
+      foreach( GeometryObject obj in geo )
+      {
+        Solid solid = obj as Solid;
+
+        if( null != solid )
+        {
+          if( 0 < solid.Volume )
+          {
+            builder.OpenConnectedFaceSet( true );
+
+            foreach( Face f in solid.Faces )
+            {
+              foreach( EdgeArray loop in f.EdgeLoops )
+              {
+                List<XYZ> loopVertices = new List<XYZ>();
+
+                foreach( Edge e in loop )
+                {
+                  loopVertices.Add(
+                    e.AsCurve().GetEndPoint( 0 ) );
+                }
+                builder.AddFace( new TessellatedFace(
+                  loopVertices, materialId ) );
+              }
+            }
+            builder.CloseConnectedFaceSet();
+            builder.Target = TessellatedShapeBuilderTarget.Solid;
+            builder.Fallback = TessellatedShapeBuilderFallback.Abort;
+            builder.Build();
+            result = builder.GetBuildResult();
+          }
+        }
+      }
+      return result.GetGeometricalObjects();
+    }
+
     public Result Execute(
       ExternalCommandData commandData,
       ref string message,
@@ -220,9 +268,11 @@ namespace RoomVolumeDirectShape
 
           // Convert to IList using LINQ
 
-          IList<GeometryObject> shape 
+          IList<GeometryObject> shape
             = geo.ToList<GeometryObject>();
 
+          #region Fix the shape
+#if FIX_THE_SHAPE_SOMEHOW
           // Create IList step by step
 
           Solid solid = geo.First<GeometryObject>() 
@@ -244,26 +294,37 @@ namespace RoomVolumeDirectShape
 
           // Create a sphere
 
-          var profile = new List<Curve>();
-
-          // create shape with 2' radius
           var center = XYZ.Zero;
           double radius = 2.0;
 
-          XYZ profile00 = center;
-          var profilePlus = center + new XYZ( 0, radius, 0 );
-          var profileMinus = center - new XYZ( 0, radius, 0 );
+          var p = center + radius * XYZ.BasisY;
+          var q = center - radius * XYZ.BasisY;
 
-          profile.Add( Line.CreateBound( profilePlus, profileMinus ) );
-          profile.Add( Arc.Create( profileMinus, profilePlus, center + new XYZ( radius, 0, 0 ) ) );
+          var profile = new List<Curve>();
+          profile.Add( Line.CreateBound( p, q ) );
+          profile.Add( Arc.Create( q, p, 
+            center + radius * XYZ.BasisX ) );
 
           var curveLoop = CurveLoop.Create( profile );
-          var options = new SolidOptions( ElementId.InvalidElementId, ElementId.InvalidElementId );
 
-          var frame = new Frame( center, XYZ.BasisX, -XYZ.BasisZ, XYZ.BasisY );
-          var sphere = GeometryCreationUtilities.CreateRevolvedGeometry( frame, new CurveLoop[] { curveLoop }, 0, 2 * Math.PI, options );
+          var options = new SolidOptions( 
+            ElementId.InvalidElementId, // material
+            ElementId.InvalidElementId ); // graphics style
+
+          var frame = new Frame( center, 
+            XYZ.BasisX, -XYZ.BasisZ, XYZ.BasisY );
+
+          var sphere = GeometryCreationUtilities
+            .CreateRevolvedGeometry( frame, 
+              new CurveLoop[] { curveLoop }, 
+              0, 2 * Math.PI, options );
 
           shape = new GeometryObject[] { solid, sphere };
+#endif // #if FIX_THE_SHAPE_SOMEHOW
+          #endregion // Fix the shape
+
+          shape = CopyGeometry(
+            geo, null );
 
           Dictionary<string, string> param_values
             = GetParamValues( r );
