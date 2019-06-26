@@ -188,6 +188,33 @@ namespace RoomVolumeDirectShape
     }
 
     /// <summary>
+    /// XYZ equality comparer to eliminate 
+    /// slightly differing vertices
+    /// </summary>
+    class XyzEqualityComparer : IEqualityComparer<XYZ>
+    {
+      /// <summary>
+      /// Tolerance. 
+      /// 0.003 imperial feet is ca. 0.9 mm
+      /// </summary>
+      double _tol = 0.003;
+
+      public bool Equals( XYZ a, XYZ b )
+      {
+        return _tol > a.DistanceTo(b);
+      }
+
+      public int GetHashCode( XYZ a )
+      {
+        string format = "0.####";
+        string s = a.X.ToString( format )
+          + "," + a.Y.ToString( format )
+          + "," + a.Z.ToString( format );
+        return s.GetHashCode();
+      }
+    }
+
+    /// <summary>
     /// Create a new list of geometry objects from the given input
     /// </summary>
     static IList<GeometryObject> CopyGeometry(
@@ -199,6 +226,10 @@ namespace RoomVolumeDirectShape
       TessellatedShapeBuilder builder
         = new TessellatedShapeBuilder();
 
+      //Dictionary<XYZ, int> pts 
+      //  = new Dictionary<XYZ, int>( 
+      //    new XyzEqualityComparer() );
+
       foreach( GeometryObject obj in geo )
       {
         Solid solid = obj as Solid;
@@ -207,7 +238,7 @@ namespace RoomVolumeDirectShape
         {
           if( 0 < solid.Volume )
           {
-            builder.OpenConnectedFaceSet( true );
+            builder.OpenConnectedFaceSet( false );
 
             foreach( Face f in solid.Faces )
             {
@@ -217,6 +248,13 @@ namespace RoomVolumeDirectShape
 
                 foreach( Edge e in loop )
                 {
+                  //XYZ p = e.AsCurve().GetEndPoint( 0 );
+
+                  //if(pts.ContainsKey(p))
+                  //{
+                  //  Debug.Print("Ignoring vertex at {0} with distance {1} to existing vertex {2}", ...
+                  //}
+
                   loopVertices.Add(
                     e.AsCurve().GetEndPoint( 0 ) );
                 }
@@ -225,14 +263,85 @@ namespace RoomVolumeDirectShape
               }
             }
             builder.CloseConnectedFaceSet();
-            builder.Target = TessellatedShapeBuilderTarget.Solid;
-            builder.Fallback = TessellatedShapeBuilderFallback.Abort;
+            //builder.Target = TessellatedShapeBuilderTarget.Solid;
+            //builder.Fallback = TessellatedShapeBuilderFallback.Abort;
             builder.Build();
             result = builder.GetBuildResult();
           }
         }
       }
       return result.GetGeometricalObjects();
+
+      //var shapeBuilder = new TessellatedShapeBuilder();
+      //shapeBuilder.OpenConnectedFaceSet( false );
+
+      //foreach( var go in geo )
+      //{
+      //  var solid = go as Solid;
+      //  if( solid == null ) continue;
+
+      //  foreach( var faceObj in solid.Faces )
+      //  {
+      //    List<XYZ> args = new List<XYZ>( 3 );
+
+      //    if( faceObj is PlanarFace )
+      //    {
+      //      var face = faceObj as PlanarFace;
+      //      var mesh = face.Triangulate();
+      //      for( int i = 0; i < mesh.NumTriangles; i++ )
+      //      {
+      //        MeshTriangle triangle = mesh.get_Triangle( i );
+
+      //        XYZ p1 = triangle.get_Vertex( 0 );
+      //        XYZ p2 = triangle.get_Vertex( 1 );
+      //        XYZ p3 = triangle.get_Vertex( 2 );
+
+      //        args.Clear();
+      //        args.Add( p1 );
+      //        args.Add( p2 );
+      //        args.Add( p3 );
+
+      //        TessellatedFace tesseFace = new TessellatedFace( args, ElementId.InvalidElementId );
+
+      //        if( shapeBuilder.DoesFaceHaveEnoughLoopsAndVertices( tesseFace ) )
+      //        {
+      //          shapeBuilder.AddFace( tesseFace );
+      //        }
+      //      }
+      //    }
+      //    else if( faceObj is CylindricalFace )
+      //    {
+      //      var face = faceObj as CylindricalFace;
+      //      var mesh = face.Triangulate();
+      //      for( int i = 0; i < mesh.NumTriangles; i++ )
+      //      {
+      //        MeshTriangle triangle = mesh.get_Triangle( i );
+
+      //        XYZ p1 = triangle.get_Vertex( 0 );
+      //        XYZ p2 = triangle.get_Vertex( 1 );
+      //        XYZ p3 = triangle.get_Vertex( 2 );
+
+      //        args.Clear();
+      //        args.Add( p1 );
+      //        args.Add( p2 );
+      //        args.Add( p3 );
+
+      //        TessellatedFace tesseFace = new TessellatedFace( args, ElementId.InvalidElementId );
+
+      //        if( shapeBuilder.DoesFaceHaveEnoughLoopsAndVertices( tesseFace ) )
+      //        {
+      //          shapeBuilder.AddFace( tesseFace );
+      //        }
+      //      }
+      //    }
+      //  }
+      //}
+      //shapeBuilder.CloseConnectedFaceSet();
+
+      //shapeBuilder.Build();
+
+      //shapeBuilder.GetBuildResult().GetGeometricalObjects()
+
     }
 
     public Result Execute(
