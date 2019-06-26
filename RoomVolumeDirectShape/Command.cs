@@ -285,11 +285,53 @@ namespace RoomVolumeDirectShape
 
               vertices.Clear();
 
+              #region Use EdgeLoops
+#if USE_EDGELOOPS
+              // This returns arbitrarily ordered and 
+              // oriented edges, so no solid can be 
+              // generated.
+
               foreach( EdgeArray loop in f.EdgeLoops )
               {
                 foreach( Edge e in loop )
                 {
                   XYZ p = e.AsCurve().GetEndPoint( 0 );
+                  XYZ q = p;
+
+                  if( pts.ContainsKey( p ) )
+                  {
+                    KeyValuePair<XYZ, int> kv = pts[p];
+                    q = kv.Key;
+                    int n = kv.Value;
+                    pts[p] = new KeyValuePair<XYZ, int>(
+                      q, ++n );
+
+                    Debug.Print( "Ignoring vertex at {0} "
+                      + "with distance {1} to existing "
+                      + "vertex {2}",
+                      p, p.DistanceTo( q ), q );
+                  }
+                  else
+                  {
+                    pts[p] = new KeyValuePair<XYZ, int>(
+                      p, 1 );
+                  }
+
+                  vertices.Add( q );
+                  ++nVertices;
+                }
+              }
+#endif // USE_EDGELOOPS
+              #endregion // Use EdgeLoops
+
+              IList<CurveLoop> loops 
+                = f.GetEdgesAsCurveLoops();
+
+              foreach( CurveLoop loop in loops )
+              {
+                foreach( Curve c in loop )
+                {
+                  XYZ p = c.GetEndPoint( 0 );
                   XYZ q = p;
 
                   if( pts.ContainsKey( p ) )
