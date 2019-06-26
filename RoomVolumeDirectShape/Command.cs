@@ -226,9 +226,13 @@ namespace RoomVolumeDirectShape
       TessellatedShapeBuilder builder
         = new TessellatedShapeBuilder();
 
-      //Dictionary<XYZ, int> pts 
-      //  = new Dictionary<XYZ, int>( 
-      //    new XyzEqualityComparer() );
+      // Need to include the key in the value, otherwise
+      // no way to access it later, cf.
+      // https://stackoverflow.com/questions/1619090/getting-a-keyvaluepair-directly-from-a-dictionary
+
+      Dictionary<XYZ, KeyValuePair<XYZ,int>> pts
+        = new Dictionary<XYZ, KeyValuePair<XYZ, int>>(
+          new XyzEqualityComparer() );
 
       foreach( GeometryObject obj in geo )
       {
@@ -248,23 +252,32 @@ namespace RoomVolumeDirectShape
 
                 foreach( Edge e in loop )
                 {
-                  //XYZ p = e.AsCurve().GetEndPoint( 0 );
+                  XYZ p = e.AsCurve().GetEndPoint( 0 );
+                  XYZ q = p;
 
-                  //if(pts.ContainsKey(p))
-                  //{
-                  //  Debug.Print("Ignoring vertex at {0} with distance {1} to existing vertex {2}", ...
-                  //}
+                  if( pts.ContainsKey(p) )
+                  {
+                    KeyValuePair<XYZ, int> kv = pts[p];
+                    q = kv.Key;
+                    int n = kv.Value;
+                    pts[p] = new KeyValuePair<XYZ, int>( 
+                      q, ++n );
 
-                  loopVertices.Add(
-                    e.AsCurve().GetEndPoint( 0 ) );
+                    Debug.Print( "Ignoring vertex at {0} "
+                      + "with distance {1} to existing "
+                      + "vertex {2}", 
+                      p, p.DistanceTo( q ), q );                  
+                  }
+
+                  loopVertices.Add( q );
                 }
                 builder.AddFace( new TessellatedFace(
                   loopVertices, materialId ) );
               }
             }
             builder.CloseConnectedFaceSet();
-            //builder.Target = TessellatedShapeBuilderTarget.Solid;
-            //builder.Fallback = TessellatedShapeBuilderFallback.Abort;
+            builder.Target = TessellatedShapeBuilderTarget.Solid;
+            builder.Fallback = TessellatedShapeBuilderFallback.Abort;
             builder.Build();
             result = builder.GetBuildResult();
           }
