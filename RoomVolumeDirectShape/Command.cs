@@ -235,7 +235,9 @@ namespace RoomVolumeDirectShape
           new XyzEqualityComparer() );
 
       int nFaces = 0;
+      int nTriangles = 0;
       int nVertices = 0;
+      List<XYZ> vertices = new List<XYZ>( 3 );
 
       foreach( GeometryObject obj in geo )
       {
@@ -249,41 +251,67 @@ namespace RoomVolumeDirectShape
 
             foreach( Face f in solid.Faces )
             {
-              foreach( EdgeArray loop in f.EdgeLoops )
+              Mesh mesh = f.Triangulate();
+              int n = mesh.NumTriangles;
+
+              for( int i = 0; i < n; ++i )
               {
-                List<XYZ> loopVertices = new List<XYZ>();
+                MeshTriangle triangle = mesh.get_Triangle( i );
 
-                foreach( Edge e in loop )
+                XYZ p1 = triangle.get_Vertex( 0 );
+                XYZ p2 = triangle.get_Vertex( 1 );
+                XYZ p3 = triangle.get_Vertex( 2 );
+
+                vertices.Clear();
+                vertices.Add( p1 );
+                vertices.Add( p2 );
+                vertices.Add( p3 );
+
+                TessellatedFace tf 
+                  = new TessellatedFace( 
+                    vertices, materialId );
+
+                if( builder.DoesFaceHaveEnoughLoopsAndVertices( tf ) )
                 {
-                  XYZ p = e.AsCurve().GetEndPoint( 0 );
-                  XYZ q = p;
-
-                  if( pts.ContainsKey(p) )
-                  {
-                    KeyValuePair<XYZ, int> kv = pts[p];
-                    q = kv.Key;
-                    int n = kv.Value;
-                    pts[p] = new KeyValuePair<XYZ, int>( 
-                      q, ++n );
-
-                    Debug.Print( "Ignoring vertex at {0} "
-                      + "with distance {1} to existing "
-                      + "vertex {2}", 
-                      p, p.DistanceTo( q ), q );                  
-                  }
-                  else
-                  {
-                    pts[p] = new KeyValuePair<XYZ, int>( 
-                      p, 1 );
-                  }
-
-                  loopVertices.Add( q );
-                  ++nVertices;
+                  builder.AddFace( tf );
+                  ++nTriangles;
                 }
-                builder.AddFace( new TessellatedFace(
-                  loopVertices, materialId ) );
-                ++nFaces;
               }
+
+
+              //foreach( EdgeArray loop in f.EdgeLoops )
+              //{
+              //  foreach( Edge e in loop )
+              //  {
+              //    XYZ p = e.AsCurve().GetEndPoint( 0 );
+              //    XYZ q = p;
+
+              //    if( pts.ContainsKey(p) )
+              //    {
+              //      KeyValuePair<XYZ, int> kv = pts[p];
+              //      q = kv.Key;
+              //      int n = kv.Value;
+              //      pts[p] = new KeyValuePair<XYZ, int>( 
+              //        q, ++n );
+
+              //      Debug.Print( "Ignoring vertex at {0} "
+              //        + "with distance {1} to existing "
+              //        + "vertex {2}", 
+              //        p, p.DistanceTo( q ), q );                  
+              //    }
+              //    else
+              //    {
+              //      pts[p] = new KeyValuePair<XYZ, int>( 
+              //        p, 1 );
+              //    }
+
+              //    loopVertices.Add( q );
+              //    ++nVertices;
+              //  }
+              //  builder.AddFace( new TessellatedFace(
+              //    loopVertices, materialId ) );
+
+              ++nFaces;
             }
             builder.CloseConnectedFaceSet();
             builder.Target = TessellatedShapeBuilderTarget.AnyGeometry; // Solid failed
