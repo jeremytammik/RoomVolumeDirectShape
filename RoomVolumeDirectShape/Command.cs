@@ -197,7 +197,8 @@ namespace RoomVolumeDirectShape
       Application app = uiapp.Application;
       Document doc = uidoc.Document;
 
-      string id_addin = uiapp.ActiveAddInId.ToString();
+      string id_addin = uiapp.ActiveAddInId.GetGUID()
+        .ToString();
 
       IEnumerable<Room> rooms
         = new FilteredElementCollector( doc )
