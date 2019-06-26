@@ -235,9 +235,9 @@ namespace RoomVolumeDirectShape
           new XyzEqualityComparer() );
 
       int nFaces = 0;
-      int nTriangles = 0;
-      //int nVertices = 0;
-      List<XYZ> vertices = new List<XYZ>( 3 );
+      //int nTriangles = 0;
+      int nVertices = 0;
+      List<XYZ> vertices = new List<XYZ>();
 
       foreach( GeometryObject obj in geo )
       {
@@ -251,6 +251,9 @@ namespace RoomVolumeDirectShape
 
             foreach( Face f in solid.Faces )
             {
+
+              #region Use face triangulation
+#if USE_FACE_TRIANGULATION
               Mesh mesh = f.Triangulate();
               int n = mesh.NumTriangles;
 
@@ -277,39 +280,43 @@ namespace RoomVolumeDirectShape
                   ++nTriangles;
                 }
               }
+#endif // USE_FACE_TRIANGULATION
+              #endregion // Use face triangulation
 
+              vertices.Clear();
 
-              //foreach( EdgeArray loop in f.EdgeLoops )
-              //{
-              //  foreach( Edge e in loop )
-              //  {
-              //    XYZ p = e.AsCurve().GetEndPoint( 0 );
-              //    XYZ q = p;
+              foreach( EdgeArray loop in f.EdgeLoops )
+              {
+                foreach( Edge e in loop )
+                {
+                  XYZ p = e.AsCurve().GetEndPoint( 0 );
+                  XYZ q = p;
 
-              //    if( pts.ContainsKey(p) )
-              //    {
-              //      KeyValuePair<XYZ, int> kv = pts[p];
-              //      q = kv.Key;
-              //      int n = kv.Value;
-              //      pts[p] = new KeyValuePair<XYZ, int>( 
-              //        q, ++n );
+                  if( pts.ContainsKey( p ) )
+                  {
+                    KeyValuePair<XYZ, int> kv = pts[p];
+                    q = kv.Key;
+                    int n = kv.Value;
+                    pts[p] = new KeyValuePair<XYZ, int>(
+                      q, ++n );
 
-              //      Debug.Print( "Ignoring vertex at {0} "
-              //        + "with distance {1} to existing "
-              //        + "vertex {2}", 
-              //        p, p.DistanceTo( q ), q );                  
-              //    }
-              //    else
-              //    {
-              //      pts[p] = new KeyValuePair<XYZ, int>( 
-              //        p, 1 );
-              //    }
+                    Debug.Print( "Ignoring vertex at {0} "
+                      + "with distance {1} to existing "
+                      + "vertex {2}",
+                      p, p.DistanceTo( q ), q );
+                  }
+                  else
+                  {
+                    pts[p] = new KeyValuePair<XYZ, int>(
+                      p, 1 );
+                  }
 
-              //    loopVertices.Add( q );
-              //    ++nVertices;
-              //  }
-              //  builder.AddFace( new TessellatedFace(
-              //    loopVertices, materialId ) );
+                  vertices.Add( q );
+                  ++nVertices;
+                }
+              }
+              builder.AddFace( new TessellatedFace(
+                vertices, materialId ) );
 
               ++nFaces;
             }
@@ -322,77 +329,6 @@ namespace RoomVolumeDirectShape
         }
       }
       return result.GetGeometricalObjects();
-
-      //var shapeBuilder = new TessellatedShapeBuilder();
-      //shapeBuilder.OpenConnectedFaceSet( false );
-
-      //foreach( var go in geo )
-      //{
-      //  var solid = go as Solid;
-      //  if( solid == null ) continue;
-
-      //  foreach( var faceObj in solid.Faces )
-      //  {
-      //    List<XYZ> args = new List<XYZ>( 3 );
-
-      //    if( faceObj is PlanarFace )
-      //    {
-      //      var face = faceObj as PlanarFace;
-      //      var mesh = face.Triangulate();
-      //      for( int i = 0; i < mesh.NumTriangles; i++ )
-      //      {
-      //        MeshTriangle triangle = mesh.get_Triangle( i );
-
-      //        XYZ p1 = triangle.get_Vertex( 0 );
-      //        XYZ p2 = triangle.get_Vertex( 1 );
-      //        XYZ p3 = triangle.get_Vertex( 2 );
-
-      //        args.Clear();
-      //        args.Add( p1 );
-      //        args.Add( p2 );
-      //        args.Add( p3 );
-
-      //        TessellatedFace tesseFace = new TessellatedFace( args, ElementId.InvalidElementId );
-
-      //        if( shapeBuilder.DoesFaceHaveEnoughLoopsAndVertices( tesseFace ) )
-      //        {
-      //          shapeBuilder.AddFace( tesseFace );
-      //        }
-      //      }
-      //    }
-      //    else if( faceObj is CylindricalFace )
-      //    {
-      //      var face = faceObj as CylindricalFace;
-      //      var mesh = face.Triangulate();
-      //      for( int i = 0; i < mesh.NumTriangles; i++ )
-      //      {
-      //        MeshTriangle triangle = mesh.get_Triangle( i );
-
-      //        XYZ p1 = triangle.get_Vertex( 0 );
-      //        XYZ p2 = triangle.get_Vertex( 1 );
-      //        XYZ p3 = triangle.get_Vertex( 2 );
-
-      //        args.Clear();
-      //        args.Add( p1 );
-      //        args.Add( p2 );
-      //        args.Add( p3 );
-
-      //        TessellatedFace tesseFace = new TessellatedFace( args, ElementId.InvalidElementId );
-
-      //        if( shapeBuilder.DoesFaceHaveEnoughLoopsAndVertices( tesseFace ) )
-      //        {
-      //          shapeBuilder.AddFace( tesseFace );
-      //        }
-      //      }
-      //    }
-      //  }
-      //}
-      //shapeBuilder.CloseConnectedFaceSet();
-
-      //shapeBuilder.Build();
-
-      //shapeBuilder.GetBuildResult().GetGeometricalObjects()
-
     }
 
     public Result Execute(
@@ -431,7 +367,7 @@ namespace RoomVolumeDirectShape
           IList<GeometryObject> shape
             = geo.ToList<GeometryObject>();
 
-          #region Fix the shape
+#region Fix the shape
 #if FIX_THE_SHAPE_SOMEHOW
           // Create IList step by step
 
@@ -481,7 +417,7 @@ namespace RoomVolumeDirectShape
 
           shape = new GeometryObject[] { solid, sphere };
 #endif // #if FIX_THE_SHAPE_SOMEHOW
-          #endregion // Fix the shape
+#endregion // Fix the shape
 
           shape = CopyGeometry(
             geo, ElementId.InvalidElementId );
