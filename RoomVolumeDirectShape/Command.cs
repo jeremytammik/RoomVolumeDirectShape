@@ -217,6 +217,9 @@ namespace RoomVolumeDirectShape
 
           GeometryElement geo = r.ClosedShell;
 
+          IList<GeometryObject> shape 
+            = geo.ToList<GeometryObject>();
+
           Dictionary<string, string> param_values
             = GetParamValues( r );
 
@@ -227,7 +230,7 @@ namespace RoomVolumeDirectShape
 
           ds.ApplicationId = id_addin;
           ds.ApplicationDataId = r.UniqueId;
-          ds.SetShape( geo.ToList<GeometryObject>() );
+          ds.SetShape( shape );
           ds.get_Parameter( _bip_properties ).Set( json );
           ds.Name = "Room volume for " + r.Name;
         }
