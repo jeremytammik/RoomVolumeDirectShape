@@ -217,8 +217,52 @@ namespace RoomVolumeDirectShape
 
           GeometryElement geo = r.ClosedShell;
 
+          // Convert to IList using LINQ
+
           IList<GeometryObject> shape 
             = geo.ToList<GeometryObject>();
+
+          // Create IList step by step
+
+          Solid solid = geo.First<GeometryObject>() 
+            as Solid;
+
+          // The room closed shell solid faces have a 
+          // non-null graphics style id: 
+          // Interior Fill 106074
+          // The sphere faces' graphics style id is null. 
+          // Maybe this graphics style does something 
+          // weird in the Forge viewer?
+          // Let's create a copy of the room solid and 
+          // see whether that resets the graphics style.
+
+          solid = SolidUtils.CreateTransformed( 
+            solid, Transform.Identity );
+
+          shape = new GeometryObject[] { solid };
+
+          // Create a sphere
+
+          var profile = new List<Curve>();
+
+          // create shape with 2' radius
+          var center = XYZ.Zero;
+          double radius = 2.0;
+
+          XYZ profile00 = center;
+          var profilePlus = center + new XYZ( 0, radius, 0 );
+          var profileMinus = center - new XYZ( 0, radius, 0 );
+
+          profile.Add( Line.CreateBound( profilePlus, profileMinus ) );
+          profile.Add( Arc.Create( profileMinus, profilePlus, center + new XYZ( radius, 0, 0 ) ) );
+
+          var curveLoop = CurveLoop.Create( profile );
+          var options = new SolidOptions( ElementId.InvalidElementId, ElementId.InvalidElementId );
+
+          var frame = new Frame( center, XYZ.BasisX, -XYZ.BasisZ, XYZ.BasisY );
+          var sphere = GeometryCreationUtilities.CreateRevolvedGeometry( frame, new CurveLoop[] { curveLoop }, 0, 2 * Math.PI, options );
+
+          shape = new GeometryObject[] { solid, sphere };
 
           Dictionary<string, string> param_values
             = GetParamValues( r );
