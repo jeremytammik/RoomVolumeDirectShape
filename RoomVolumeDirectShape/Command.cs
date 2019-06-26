@@ -268,6 +268,11 @@ namespace RoomVolumeDirectShape
                       + "vertex {2}", 
                       p, p.DistanceTo( q ), q );                  
                   }
+                  else
+                  {
+                    pts[p] = new KeyValuePair<XYZ, int>( 
+                      p, 1 );
+                  }
 
                   loopVertices.Add( q );
                 }
