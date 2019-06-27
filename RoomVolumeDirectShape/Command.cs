@@ -35,6 +35,19 @@ namespace RoomVolumeDirectShape
     BuiltInParameter _bip_properties
       = BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS;
 
+    const double _inch_to_mm = 25.4;
+    const double _foot_to_mm = 12 * _inch_to_mm;
+
+    /// <summary>
+    /// Convert Revit database length in imperial feet 
+    /// to integer millimetre value
+    /// </summary>
+    static int FootToMm( double length )
+    {
+      return (int) Math.Round( _foot_to_mm * length,
+        MidpointRounding.AwayFromZero );
+    }
+
     /// <summary>
     /// Return a JSON string representing a dictionary
     /// mapping string key to string value.
@@ -237,10 +250,18 @@ namespace RoomVolumeDirectShape
         = new Dictionary<XYZ, KeyValuePair<XYZ, int>>(
           new XyzEqualityComparer() );
 
-      int nFaces = 0;
+      //int nFaces = 0;
       int nTriangles = 0;
       //int nVertices = 0;
       List<XYZ> vertices = new List<XYZ>( 3 );
+
+      // Collect data for glTF: a list of vertex
+      // coordinates in millimetres, and a list of
+      // triangle vertex indices into the list.
+
+      List<int> gltfVertexCoordinates = new List<int>();
+      List<int> gltfVertexIndices = new List<int>();
+      int gltfVertexIndexBase = 0;
 
       foreach( GeometryObject obj in geo )
       {
@@ -340,17 +361,34 @@ namespace RoomVolumeDirectShape
             TriangulatedShellComponent component
               = shell.GetShellComponent( 0 );
 
-            n = component.TriangleCount;
+            gltfVertexIndexBase = gltfVertexCoordinates.Count;
+
+            n = component.VertexCount;
 
             for(int i = 0; i < n;  ++i )
+            {
+              XYZ v = component.GetVertex( i );
+              gltfVertexCoordinates.Add( FootToMm( v.X ) );
+              gltfVertexCoordinates.Add( FootToMm( v.Y ) );
+              gltfVertexCoordinates.Add( FootToMm( v.Z ) );
+            }
+
+            n = component.TriangleCount;
+
+            for( int i = 0; i < n;  ++i )
             {
               TriangleInShellComponent t 
                 = component.GetTriangle( i );
 
               vertices.Clear();
+
               vertices.Add( component.GetVertex( t.VertexIndex0 ) );
               vertices.Add( component.GetVertex( t.VertexIndex1 ) );
               vertices.Add( component.GetVertex( t.VertexIndex2 ) );
+
+              gltfVertexIndices.Add( gltfVertexIndexBase + t.VertexIndex0 );
+              gltfVertexIndices.Add( gltfVertexIndexBase + t.VertexIndex1 );
+              gltfVertexIndices.Add( gltfVertexIndexBase + t.VertexIndex2 );
 
               TessellatedFace tf = new TessellatedFace(
                 vertices, materialId );
@@ -495,6 +533,19 @@ namespace RoomVolumeDirectShape
             builder.Fallback = TessellatedShapeBuilderFallback.Mesh; // use Abort if target is Solid
             builder.Build();
             result = builder.GetBuildResult();
+
+            Debug.Print(
+              "{0} glTF vertex coordinates in millimetres:",
+              gltfVertexCoordinates.Count );
+            Debug.Print( string.Join( " ",
+              gltfVertexCoordinates.Select<int, string>(
+                i => i.ToString() ) ) );
+            Debug.Print( 
+              "{0} glTF triangle vertex indices:", 
+              gltfVertexIndices.Count );
+            Debug.Print( string.Join( " ",
+              gltfVertexIndices.Select<int, string>( 
+                i => i.ToString() ) ) );
           }
         }
       }

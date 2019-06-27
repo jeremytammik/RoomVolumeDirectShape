@@ -43,6 +43,7 @@ using System.Runtime.InteropServices;
 // 2019-06-27 2020.0.0.5 the solid copied from the room closed shell generated using GetEdgesAsCurveLoops does not display properly in the Forge viewer; reverted to triangulation again
 // 2019-06-27 2020.0.0.6 added assertions
 // 2019-06-27 2020.0.0.6 created a new solid from the room closed shell using SolidUtils.TessellateSolidOrShell
+// 2019-06-27 2020.0.0.7 added code to generate glTF facet data
 //
-[assembly: AssemblyVersion( "2020.0.0.6" )]
-[assembly: AssemblyFileVersion( "2020.0.0.6" )]
+[assembly: AssemblyVersion( "2020.0.0.7" )]
+[assembly: AssemblyFileVersion( "2020.0.0.7" )]
