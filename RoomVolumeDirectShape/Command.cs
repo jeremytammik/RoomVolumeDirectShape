@@ -11,6 +11,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
+using System.IO;
 #endregion
 
 namespace RoomVolumeDirectShape
@@ -34,6 +35,11 @@ namespace RoomVolumeDirectShape
     /// </summary>
     BuiltInParameter _bip_properties
       = BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS;
+
+    /// <summary>
+    /// Export binary glTF facet data
+    /// </summary>
+    const string _gltf_path = "roomvolumegltf.bin";
 
     const double _inch_to_mm = 25.4;
     const double _foot_to_mm = 12 * _inch_to_mm;
@@ -534,6 +540,8 @@ namespace RoomVolumeDirectShape
             builder.Build();
             result = builder.GetBuildResult();
 
+            // Log glTF data
+
             Debug.Print(
               "{0} glTF vertex coordinates in millimetres:",
               gltfVertexCoordinates.Count );
@@ -546,6 +554,25 @@ namespace RoomVolumeDirectShape
             Debug.Print( string.Join( " ",
               gltfVertexIndices.Select<int, string>( 
                 i => i.ToString() ) ) );
+
+            // Save glTF data to binary file
+
+            using( FileStream file = File.Create( "C:/tmp/" + _gltf_path ) )
+            {
+              using( BinaryWriter writer = new BinaryWriter( file ) )
+              {
+                foreach( int i in gltfVertexCoordinates )
+                {
+                  writer.Write( (float) i );
+                }
+                foreach( int i in gltfVertexIndices )
+                {
+                  Debug.Assert( ushort.MaxValue > i, 
+                    "expected triangle vertex indices to fit into unsigned short" );
+                  writer.Write( (ushort) i );
+                }
+              }
+            }
           }
         }
       }
