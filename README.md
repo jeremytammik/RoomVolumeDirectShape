@@ -49,8 +49,8 @@ No intermediate formats, no UI, just straight automation work.
 
 ## Solution
 
-The solution is explained in detail 
-in [The Building Coder](https://thebuildingcoder.typepad.com) discussion 
+The solution is explained in detail
+in [The Building Coder](https://thebuildingcoder.typepad.com) discussion
 on [`DirectShape` element to represent room volume](https://thebuildingcoder.typepad.com/blog/2019/05/generate-directshape-element-to-represent-room-volume.html).
 
 
@@ -68,6 +68,24 @@ Isolated, the resulting direct shapes look like this:
 <img src="img/rac_basic_sample_project_room_volumes.png" alt="DirectShape elements representing room volumes" width="699">
 </center>
 
+
+## Cleaning up the Solid for the Forge Viewer
+
+The solid returned by `Room.GetClosedShell` does not display properly in the Forge viewer; in fact, the generic model direct shape elements are completely ignored and do not even appear in the Forge viewer model browser.
+
+Implemented `CopyGeometry` to fix that, and tried various approaches to recreate the solid myself, iterating over the solid faces and building new faces with a `TessellatedShapeBuilder`.
+
+Three approaches attemtped, using:
+
+- `Face.Triangulate`
+- `Face.EdgeLoops`
+- `Face.GetEdgesAsCurveLoops`
+
+Using the unoriented edge loops does not work. It would require reorienting the edges properly to define a valid new solid.
+
+Using `GetEdgesAsCurveLoops` creates a good-looking solid in Revit, but it has some weird normals in the Forge viewer.
+
+Currently, the triangulation approach seems be the only one that deliver reliable results in the Forge viewer.
 
 
 ## Author
