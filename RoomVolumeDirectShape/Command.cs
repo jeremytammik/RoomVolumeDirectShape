@@ -203,7 +203,7 @@ namespace RoomVolumeDirectShape
 
       public bool Equals( XYZ a, XYZ b )
       {
-        return _tol > a.DistanceTo(b);
+        return _tol > a.DistanceTo( b );
       }
 
       public int GetHashCode( XYZ a )
@@ -232,7 +232,7 @@ namespace RoomVolumeDirectShape
       // no way to access it later, cf.
       // https://stackoverflow.com/questions/1619090/getting-a-keyvaluepair-directly-from-a-dictionary
 
-      Dictionary<XYZ, KeyValuePair<XYZ,int>> pts
+      Dictionary<XYZ, KeyValuePair<XYZ, int>> pts
         = new Dictionary<XYZ, KeyValuePair<XYZ, int>>(
           new XyzEqualityComparer() );
 
@@ -274,8 +274,8 @@ namespace RoomVolumeDirectShape
                 vertices.Add( p2 );
                 vertices.Add( p3 );
 
-                TessellatedFace tf 
-                  = new TessellatedFace( 
+                TessellatedFace tf
+                  = new TessellatedFace(
                     vertices, materialId );
 
                 if( builder.DoesFaceHaveEnoughLoopsAndVertices( tf ) )
@@ -367,7 +367,7 @@ namespace RoomVolumeDirectShape
                 }
               }
 #endif // USE_AS_CURVE_LOOPS
-#endregion // Use original solid and GetEdgesAsCurveLoops
+              #endregion // Use original solid and GetEdgesAsCurveLoops
 
               builder.AddFace( new TessellatedFace(
                 vertices, materialId ) );
@@ -416,12 +416,21 @@ namespace RoomVolumeDirectShape
 
           GeometryElement geo = r.ClosedShell;
 
+          Debug.Assert( 
+            geo.First<GeometryObject>() is Solid, 
+            "expected a solid for room closed shell" );
+
+          Debug.Assert( 
+            SolidUtils.IsValidForTessellation( 
+              geo.First<GeometryObject>() as Solid ), 
+            "expected a valid solid for room closed shell" );
+
           // Convert to IList using LINQ
 
           IList<GeometryObject> shape
             = geo.ToList<GeometryObject>();
 
-#region Fix the shape
+          #region Fix the shape
 #if FIX_THE_SHAPE_SOMEHOW
           // Create IList step by step
 
@@ -471,7 +480,7 @@ namespace RoomVolumeDirectShape
 
           shape = new GeometryObject[] { solid, sphere };
 #endif // #if FIX_THE_SHAPE_SOMEHOW
-#endregion // Fix the shape
+          #endregion // Fix the shape
 
           shape = CopyGeometry(
             geo, ElementId.InvalidElementId );
