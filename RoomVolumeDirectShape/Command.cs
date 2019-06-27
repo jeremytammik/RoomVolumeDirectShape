@@ -1,4 +1,5 @@
-#define USE_FACE_TRIANGULATION
+//#define USE_FACE_TRIANGULATION
+#define CREATE_NEW_SOLID_USING_TESSELATION
 
 #region Namespaces
 using System;
@@ -239,7 +240,7 @@ namespace RoomVolumeDirectShape
       int nFaces = 0;
       int nTriangles = 0;
       //int nVertices = 0;
-      List<XYZ> vertices = new List<XYZ>();
+      List<XYZ> vertices = new List<XYZ>( 3 );
 
       foreach( GeometryObject obj in geo )
       {
@@ -251,11 +252,123 @@ namespace RoomVolumeDirectShape
           {
             builder.OpenConnectedFaceSet( false );
 
+            #region Create a new solid based on tessellation of the invalid room closed shell solid
+#if CREATE_NEW_SOLID_USING_TESSELATION
+
+            Debug.Assert(
+              SolidUtils.IsValidForTessellation( solid ),
+              "expected a valid solid for room closed shell" );
+
+            SolidOrShellTessellationControls controls
+              = new SolidOrShellTessellationControls()
+              {
+                //
+                // Summary:
+                //     A positive real number specifying how accurately a triangulation should approximate
+                //     a solid or shell.
+                //
+                // Exceptions:
+                //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
+                //     When setting this property: The given value for accuracy must be greater than
+                //     0 and no more than 30000 feet.
+                // This statement is not true. I set Accuracy = 0.003 and an exception was thrown.
+                // Setting it to 0.006 was acceptable. 0.03 is a bit over 9 mm.
+                //
+                // Remarks:
+                //     The maximum distance from a point on the triangulation to the nearest point on
+                //     the solid or shell should be no greater than the specified accuracy. This constraint
+                //     may be approximately enforced.
+                Accuracy = 0.03,
+                //
+                // Summary:
+                //     An number between 0 and 1 (inclusive) specifying the level of detail for the
+                //     triangulation of a solid or shell.
+                //
+                // Exceptions:
+                //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
+                //     When setting this property: The given value for levelOfDetail must lie between
+                //     0 and 1 (inclusive).
+                //
+                // Remarks:
+                //     Smaller values yield coarser triangulations (fewer triangles), while larger values
+                //     yield finer triangulations (more triangles).
+                LevelOfDetail = 0.1,
+                //
+                // Summary:
+                //     A non-negative real number specifying the minimum allowed angle for any triangle
+                //     in the triangulation, in radians.
+                //
+                // Exceptions:
+                //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
+                //     When setting this property: The given value for minAngleInTriangle must be at
+                //     least 0 and less than 60 degrees, expressed in radians. The value 0 means to
+                //     ignore the minimum angle constraint.
+                //
+                // Remarks:
+                //     A small value can be useful when triangulating long, thin objects, in order to
+                //     keep the number of triangles small, but it can result in long, thin triangles,
+                //     which are not acceptable for all applications. If the value is too large, this
+                //     constraint may not be satisfiable, causing the triangulation to fail. This constraint
+                //     may be approximately enforced. A value of 0 means to ignore the minimum angle
+                //     constraint.
+                MinAngleInTriangle = 3 * Math.PI / 180.0,
+                //
+                // Summary:
+                //     A positive real number specifying the minimum allowed value for the external
+                //     angle between two adjacent triangles, in radians.
+                //
+                // Exceptions:
+                //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
+                //     When setting this property: The given value for minExternalAngleBetweenTriangles
+                //     must be greater than 0 and no more than 30000 feet.
+                //
+                // Remarks:
+                //     A small value yields more smoothly curved triangulated surfaces, usually at the
+                //     expense of an increase in the number of triangles. Note that this setting has
+                //     no effect for planar surfaces. This constraint may be approximately enforced.
+                MinExternalAngleBetweenTriangles = 0.2 * Math.PI
+              };
+
+            TriangulatedSolidOrShell shell
+              = SolidUtils.TessellateSolidOrShell( solid, controls );
+
+            int n = shell.ShellComponentCount;
+
+            Debug.Assert( 1 == n,
+              "expected just one shell component in room closed shell" );
+
+            TriangulatedShellComponent component
+              = shell.GetShellComponent( 0 );
+
+            n = component.TriangleCount;
+
+            for(int i = 0; i < n;  ++i )
+            {
+              TriangleInShellComponent t 
+                = component.GetTriangle( i );
+
+              vertices.Clear();
+              vertices.Add( component.GetVertex( t.VertexIndex0 ) );
+              vertices.Add( component.GetVertex( t.VertexIndex1 ) );
+              vertices.Add( component.GetVertex( t.VertexIndex2 ) );
+
+              TessellatedFace tf = new TessellatedFace(
+                vertices, materialId );
+
+              if( builder.DoesFaceHaveEnoughLoopsAndVertices( tf ) )
+              {
+                builder.AddFace( tf );
+                ++nTriangles;
+              }
+            }
+#else
+            // Iterate over the individual solid faces
+
             foreach( Face f in solid.Faces )
             {
               vertices.Clear();
 
-              #region Use face triangulation
+            #region Use face triangulation
 #if USE_FACE_TRIANGULATION
 
               Mesh mesh = f.Triangulate();
@@ -285,9 +398,9 @@ namespace RoomVolumeDirectShape
                 }
               }
 #endif // USE_FACE_TRIANGULATION
-              #endregion // Use face triangulation
+            #endregion // Use face triangulation
 
-              #region Use original solid and its EdgeLoops
+            #region Use original solid and its EdgeLoops
 #if USE_EDGELOOPS
               // This returns arbitrarily ordered and 
               // oriented edges, so no solid can be 
@@ -324,9 +437,9 @@ namespace RoomVolumeDirectShape
                 }
               }
 #endif // USE_EDGELOOPS
-              #endregion // Use original solid and its EdgeLoops
+            #endregion // Use original solid and its EdgeLoops
 
-              #region Use original solid and GetEdgesAsCurveLoops
+            #region Use original solid and GetEdgesAsCurveLoops
 #if USE_AS_CURVE_LOOPS
 
               // The solids generated by this have some weird 
@@ -367,13 +480,16 @@ namespace RoomVolumeDirectShape
                 }
               }
 #endif // USE_AS_CURVE_LOOPS
-              #endregion // Use original solid and GetEdgesAsCurveLoops
+            #endregion // Use original solid and GetEdgesAsCurveLoops
 
               builder.AddFace( new TessellatedFace(
                 vertices, materialId ) );
 
               ++nFaces;
             }
+#endif // CREATE_NEW_SOLID_USING_TESSELATION
+            #endregion // Create a new solid based on tessellation of the invalid room closed shell solid
+
             builder.CloseConnectedFaceSet();
             builder.Target = TessellatedShapeBuilderTarget.AnyGeometry; // Solid failed
             builder.Fallback = TessellatedShapeBuilderFallback.Mesh; // use Abort if target is Solid
@@ -421,87 +537,6 @@ namespace RoomVolumeDirectShape
             "expected a solid for room closed shell" );
 
           Solid solid = geo.First<GeometryObject>() as Solid;
-
-          Debug.Assert(
-            SolidUtils.IsValidForTessellation( solid ),
-            "expected a valid solid for room closed shell" );
-
-          SolidOrShellTessellationControls controls
-            = new SolidOrShellTessellationControls()
-            {
-              //
-              // Summary:
-              //     A positive real number specifying how accurately a triangulation should approximate
-              //     a solid or shell.
-              //
-              // Exceptions:
-              //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
-              //     When setting this property: The given value for accuracy must be greater than
-              //     0 and no more than 30000 feet.
-              //
-              // Remarks:
-              //     The maximum distance from a point on the triangulation to the nearest point on
-              //     the solid or shell should be no greater than the specified accuracy. This constraint
-              //     may be approximately enforced.
-              Accuracy = 0.003,
-              //
-              // Summary:
-              //     An number between 0 and 1 (inclusive) specifying the level of detail for the
-              //     triangulation of a solid or shell.
-              //
-              // Exceptions:
-              //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
-              //     When setting this property: The given value for levelOfDetail must lie between
-              //     0 and 1 (inclusive).
-              //
-              // Remarks:
-              //     Smaller values yield coarser triangulations (fewer triangles), while larger values
-              //     yield finer triangulations (more triangles).
-              LevelOfDetail = 0.1,
-              //
-              // Summary:
-              //     A non-negative real number specifying the minimum allowed angle for any triangle
-              //     in the triangulation, in radians.
-              //
-              // Exceptions:
-              //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
-              //     When setting this property: The given value for minAngleInTriangle must be at
-              //     least 0 and less than 60 degrees, expressed in radians. The value 0 means to
-              //     ignore the minimum angle constraint.
-              //
-              // Remarks:
-              //     A small value can be useful when triangulating long, thin objects, in order to
-              //     keep the number of triangles small, but it can result in long, thin triangles,
-              //     which are not acceptable for all applications. If the value is too large, this
-              //     constraint may not be satisfiable, causing the triangulation to fail. This constraint
-              //     may be approximately enforced. A value of 0 means to ignore the minimum angle
-              //     constraint.
-              MinAngleInTriangle = 3 * Math.PI / 180.0,
-              //
-              // Summary:
-              //     A positive real number specifying the minimum allowed value for the external
-              //     angle between two adjacent triangles, in radians.
-              //
-              // Exceptions:
-              //   T:Autodesk.Revit.Exceptions.ArgumentOutOfRangeException:
-              //     When setting this property: The given value for minExternalAngleBetweenTriangles
-              //     must be greater than 0 and no more than 30000 feet.
-              //
-              // Remarks:
-              //     A small value yields more smoothly curved triangulated surfaces, usually at the
-              //     expense of an increase in the number of triangles. Note that this setting has
-              //     no effect for planar surfaces. This constraint may be approximately enforced.
-              MinExternalAngleBetweenTriangles = 0.2 * Math.PI
-            };
-
-          TriangulatedSolidOrShell shell
-            = SolidUtils.TessellateSolidOrShell( solid, controls );
-
-          int n = shell.ShellComponentCount;
-
-          TriangulatedShellComponent component
-            = shell.GetShellComponent( 0 );
-
 
           #region Fix the shape
 #if FIX_THE_SHAPE_SOMEHOW
