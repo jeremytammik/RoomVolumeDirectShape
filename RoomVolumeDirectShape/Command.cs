@@ -709,12 +709,21 @@ namespace RoomVolumeDirectShape
       // Save glTF binary data for vertex coordinates 
       // and triangle vertex indices to binary file
 
-      string gltfbinfilepath = Path.Combine(
+      string path = Path.Combine(
         Path.GetTempPath(), _gltf_filename );
 
-      using( FileStream binfile = File.Create( _gltf_filename ) )
+      using( StreamWriter s = new StreamWriter( 
+        path + ".txt" ) )
       {
-        using( BinaryWriter writer = new BinaryWriter( binfile ) )
+        foreach( RoomData rd in room_data )
+        {
+          s.Write( rd.ToString() );
+        }
+      }
+
+      using( FileStream f = File.Create( path + ".bin" ) )
+      {
+        using( BinaryWriter writer = new BinaryWriter( f ) )
         {
           foreach( int i in gltf_coords )
           {
@@ -727,7 +736,6 @@ namespace RoomVolumeDirectShape
 
             writer.Write( (ushort) i );
           }
-
         }
       }
       return Result.Succeeded;
