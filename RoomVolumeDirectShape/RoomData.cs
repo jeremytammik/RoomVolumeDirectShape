@@ -2,6 +2,14 @@
 
 namespace RoomVolumeDirectShape
 {
+  /// <summary>
+  /// Room data for glTF export:
+  /// element id and guid, room name, 
+  /// coordinateoffset, coordinatecount, 
+  /// vertexindexoffset, vertexcount
+  /// (byte or object coount?), 
+  /// min and max x, y, z coord values
+  /// </summary>
   class RoomData
   {
     public int ElementId { get; set; }
@@ -13,9 +21,9 @@ namespace RoomVolumeDirectShape
     public int MaxX { get; set; }
     public int MaxY { get; set; }
     public int MaxZ { get; set; }
-
-    // room data: element guid, room name, coordinateoffset, coordinatecount, vertexindexoffset, vertexcount( byte and object coount ), min and max x, y, z values
-
-
+    public int CoordinatesBegin { get; set; }
+    public int CoordinatesCount { get; set; }
+    public int TriangleVertexIndexBegin { get; set; }
+    public int TriangleVertexIndexCount { get; set; }
   }
 }
