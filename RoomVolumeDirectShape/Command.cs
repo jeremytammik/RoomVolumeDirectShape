@@ -267,6 +267,7 @@ namespace RoomVolumeDirectShape
       int coordsBegin = coords.Count;
       int indicesBegin = indices.Count;
 
+      int nSolids = 0;
       //int nFaces = 0;
       int nTriangles = 0;
       //int nVertices = 0;
@@ -280,6 +281,8 @@ namespace RoomVolumeDirectShape
         {
           if( 0 < solid.Volume )
           {
+            ++nSolids;
+
             builder.OpenConnectedFaceSet( false );
 
             #region Create a new solid based on tessellation of the invalid room closed shell solid
@@ -370,7 +373,8 @@ namespace RoomVolumeDirectShape
             TriangulatedShellComponent component
               = shell.GetShellComponent( 0 );
 
-            int indexBase = coords.Count;
+            int coordsBase = coords.Count;
+            int indicesBase = indices.Count;
 
             n = component.VertexCount;
 
@@ -395,9 +399,9 @@ namespace RoomVolumeDirectShape
               vertices.Add( component.GetVertex( t.VertexIndex1 ) );
               vertices.Add( component.GetVertex( t.VertexIndex2 ) );
 
-              indices.Add( indexBase + t.VertexIndex0 );
-              indices.Add( indexBase + t.VertexIndex1 );
-              indices.Add( indexBase + t.VertexIndex2 );
+              indices.Add( coordsBase + t.VertexIndex0 );
+              indices.Add( coordsBase + t.VertexIndex1 );
+              indices.Add( coordsBase + t.VertexIndex2 );
 
               TessellatedFace tf = new TessellatedFace(
                 vertices, materialId );
@@ -534,6 +538,7 @@ namespace RoomVolumeDirectShape
 
               ++nFaces;
             }
+
 #endif // CREATE_NEW_SOLID_USING_TESSELATION
             #endregion // Create a new solid based on tessellation of the invalid room closed shell solid
 
@@ -545,8 +550,7 @@ namespace RoomVolumeDirectShape
 
             // Log glTF data
 
-            rd.CoordinatesCount = n 
-              = coords.Count - coordsBegin;            
+            n = coords.Count - coordsBase;            
 
             Debug.Print( "{0} glTF vertex coordinates "
               + "in millimetres:", n );
@@ -555,8 +559,7 @@ namespace RoomVolumeDirectShape
               .TakeWhile<int>( ( i, j ) => coordsBegin <= j )
               .Select<int, string>( i => i.ToString() ) ) );
 
-            rd.TriangleVertexIndexCount = n 
-              = indices.Count - indicesBegin;
+            n = indices.Count - indicesBase;
 
             Debug.Print( "{0} glTF triangle vertex "
               + "indices:", n );
@@ -567,6 +570,10 @@ namespace RoomVolumeDirectShape
           }
         }
       }
+      rd.CoordinatesCount = coords.Count - coordsBegin;
+      rd.TriangleVertexIndexCount = indices.Count 
+        - indicesBegin;
+
       return result.GetGeometricalObjects();
     }
 
