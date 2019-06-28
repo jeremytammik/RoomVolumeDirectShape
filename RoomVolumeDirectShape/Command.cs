@@ -40,7 +40,7 @@ namespace RoomVolumeDirectShape
     /// <summary>
     /// Export binary glTF facet data
     /// </summary>
-    const string _gltf_path = "roomvolumegltf.bin";
+    const string _gltf_filename = "roomvolumegltf.bin";
 
     const double _inch_to_mm = 25.4;
     const double _foot_to_mm = 12 * _inch_to_mm;
@@ -562,7 +562,7 @@ namespace RoomVolumeDirectShape
 
             // Save glTF data to binary file
 
-            using( FileStream file = File.Create( "C:/tmp/" + _gltf_path ) )
+            using( FileStream file = File.Create( "C:/tmp/" + _gltf_filename ) )
             {
               using( BinaryWriter writer = new BinaryWriter( file ) )
               {
@@ -604,24 +604,39 @@ namespace RoomVolumeDirectShape
         .Where( e => e.GetType() == typeof( Room ) )
         .Cast<Room>();
 
-      using( Transaction tx = new Transaction( doc ) )
+      // Collect room data for glTF export
+
+      List<RoomData> room_data = new List<RoomData>( 
+        rooms.Count<Room>() );
+
+      // glTF binary data for vertex coordinates 
+      // and triangle vertex indices
+
+      string gltfbinfilepath = Path.Combine(
+        Path.GetTempPath(), _gltf_filename );
+
+      using( FileStream binfile = File.Create( _gltf_filename ) )
       {
-        tx.Start( "Generate Direct Shape Elements "
-          + "Representing Room Volumes" );
-
-        foreach( Room r in rooms )
+        using( BinaryWriter writer = new BinaryWriter( binfile ) )
         {
-          Debug.Print( r.Name );
+          using( Transaction tx = new Transaction( doc ) )
+          {
+            tx.Start( "Generate Direct Shape Elements "
+              + "Representing Room Volumes" );
 
-          GeometryElement geo = r.ClosedShell;
+            foreach( Room r in rooms )
+            {
+              Debug.Print( r.Name );
 
-          Debug.Assert(
-            geo.First<GeometryObject>() is Solid,
-            "expected a solid for room closed shell" );
+              GeometryElement geo = r.ClosedShell;
 
-          Solid solid = geo.First<GeometryObject>() as Solid;
+              Debug.Assert(
+                geo.First<GeometryObject>() is Solid,
+                "expected a solid for room closed shell" );
 
-          #region Fix the shape
+              Solid solid = geo.First<GeometryObject>() as Solid;
+
+              #region Fix the shape
 #if FIX_THE_SHAPE_SOMEHOW
           // Create IList step by step
 
@@ -671,29 +686,31 @@ namespace RoomVolumeDirectShape
 
           shape = new GeometryObject[] { solid, sphere };
 #endif // #if FIX_THE_SHAPE_SOMEHOW
-          #endregion // Fix the shape
+              #endregion // Fix the shape
 
-          IList<GeometryObject> shape
-            = geo.ToList<GeometryObject>();
+              IList<GeometryObject> shape
+                = geo.ToList<GeometryObject>();
 
-          shape = CopyGeometry(
-            geo, ElementId.InvalidElementId );
+              shape = CopyGeometry(
+                geo, ElementId.InvalidElementId );
 
-          Dictionary<string, string> param_values
-            = GetParamValues( r );
+              Dictionary<string, string> param_values
+                = GetParamValues( r );
 
-          string json = FormatDictAsJson( param_values );
+              string json = FormatDictAsJson( param_values );
 
-          DirectShape ds = DirectShape.CreateElement(
-            doc, _id_category_for_direct_shape );
+              DirectShape ds = DirectShape.CreateElement(
+                doc, _id_category_for_direct_shape );
 
-          ds.ApplicationId = id_addin;
-          ds.ApplicationDataId = r.UniqueId;
-          ds.SetShape( shape );
-          ds.get_Parameter( _bip_properties ).Set( json );
-          ds.Name = "Room volume for " + r.Name;
+              ds.ApplicationId = id_addin;
+              ds.ApplicationDataId = r.UniqueId;
+              ds.SetShape( shape );
+              ds.get_Parameter( _bip_properties ).Set( json );
+              ds.Name = "Room volume for " + r.Name;
+            }
+            tx.Commit();
+          }
         }
-        tx.Commit();
       }
       return Result.Succeeded;
     }
