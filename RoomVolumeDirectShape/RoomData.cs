@@ -24,14 +24,20 @@ namespace RoomVolumeDirectShape
     public int MaxZ { get; set; }
     public int CoordinatesBegin { get; set; }
     public int CoordinatesCount { get; set; }
-    public int TriangleVertexIndexBegin { get; set; }
+    public int TriangleVertexIndicesBegin { get; set; }
     public int TriangleVertexIndexCount { get; set; }
 
-    public RoomData( Room r )
+    public RoomData( 
+      Room r,
+      int coordinatesBegin,
+      int triangleVertexIndicesBegin )
     {
       ElementId = r.Id.IntegerValue;
       UniqueId = r.UniqueId;
       RoomName = r.Name;
+      CoordinatesBegin = coordinatesBegin;
+      TriangleVertexIndicesBegin 
+        = triangleVertexIndicesBegin;
     }
   }
 }

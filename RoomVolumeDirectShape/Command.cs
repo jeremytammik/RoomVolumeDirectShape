@@ -245,6 +245,9 @@ namespace RoomVolumeDirectShape
     /// in the input solid.
     /// </summary>
     static IList<GeometryObject> CopyGeometry(
+      RoomData rd,
+      List<int> coords,
+      List<int> indices,
       GeometryElement geo,
       ElementId materialId )
     {
@@ -261,18 +264,13 @@ namespace RoomVolumeDirectShape
         = new Dictionary<XYZ, KeyValuePair<XYZ, int>>(
           new XyzEqualityComparer() );
 
+      int coordsBegin = coords.Count;
+      int indicesBegin = indices.Count;
+
       //int nFaces = 0;
       int nTriangles = 0;
       //int nVertices = 0;
       List<XYZ> vertices = new List<XYZ>( 3 );
-
-      // Collect data for glTF: a list of vertex
-      // coordinates in millimetres, and a list of
-      // triangle vertex indices into the list.
-
-      List<int> gltfVertexCoordinates = new List<int>();
-      List<int> gltfVertexIndices = new List<int>();
-      int gltfVertexIndexBase = 0;
 
       foreach( GeometryObject obj in geo )
       {
@@ -372,16 +370,16 @@ namespace RoomVolumeDirectShape
             TriangulatedShellComponent component
               = shell.GetShellComponent( 0 );
 
-            gltfVertexIndexBase = gltfVertexCoordinates.Count;
+            int indexBase = coords.Count;
 
             n = component.VertexCount;
 
             for(int i = 0; i < n;  ++i )
             {
               XYZ v = component.GetVertex( i );
-              gltfVertexCoordinates.Add( FootToMm( v.X ) );
-              gltfVertexCoordinates.Add( FootToMm( v.Y ) );
-              gltfVertexCoordinates.Add( FootToMm( v.Z ) );
+              coords.Add( FootToMm( v.X ) );
+              coords.Add( FootToMm( v.Y ) );
+              coords.Add( FootToMm( v.Z ) );
             }
 
             n = component.TriangleCount;
@@ -397,9 +395,9 @@ namespace RoomVolumeDirectShape
               vertices.Add( component.GetVertex( t.VertexIndex1 ) );
               vertices.Add( component.GetVertex( t.VertexIndex2 ) );
 
-              gltfVertexIndices.Add( gltfVertexIndexBase + t.VertexIndex0 );
-              gltfVertexIndices.Add( gltfVertexIndexBase + t.VertexIndex1 );
-              gltfVertexIndices.Add( gltfVertexIndexBase + t.VertexIndex2 );
+              indices.Add( indexBase + t.VertexIndex0 );
+              indices.Add( indexBase + t.VertexIndex1 );
+              indices.Add( indexBase + t.VertexIndex2 );
 
               TessellatedFace tf = new TessellatedFace(
                 vertices, materialId );
@@ -547,37 +545,36 @@ namespace RoomVolumeDirectShape
 
             // Log glTF data
 
-            Debug.Print(
-              "{0} glTF vertex coordinates in millimetres:",
-              gltfVertexCoordinates.Count );
-            Debug.Print( string.Join( " ",
-              gltfVertexCoordinates.Select<int, string>(
-                i => i.ToString() ) ) );
-            Debug.Print( 
-              "{0} glTF triangle vertex indices:", 
-              gltfVertexIndices.Count );
-            Debug.Print( string.Join( " ",
-              gltfVertexIndices.Select<int, string>( 
-                i => i.ToString() ) ) );
+            n = coords.Count - coordsBegin;
 
-            // Save glTF data to binary file
+            Debug.Print( "{0} glTF vertex coordinates "
+              + "in millimetres:", n );
 
-            using( FileStream file = File.Create( "C:/tmp/" + _gltf_filename ) )
-            {
-              using( BinaryWriter writer = new BinaryWriter( file ) )
-              {
-                foreach( int i in gltfVertexCoordinates )
-                {
-                  writer.Write( (float) i );
-                }
-                foreach( int i in gltfVertexIndices )
-                {
-                  Debug.Assert( ushort.MaxValue > i, 
-                    "expected triangle vertex indices to fit into unsigned short" );
-                  writer.Write( (ushort) i );
-                }
-              }
-            }
+            Debug.Print( string.Join( " ", coords
+              .TakeWhile<int>((i,j) => coordsBegin<= j)
+              .Select<int, string>( i => i.ToString() ) ) );
+
+            n = indices.Count - indicesBegin;
+
+            Debug.Print( "{0} glTF triangle vertex "
+              + "indices:", n );
+              
+            Debug.Print( string.Join( " ", indices
+              .TakeWhile<int>( ( i, j ) => indicesBegin <= j )
+              .Select<int, string>( i => i.ToString() ) ) );
+
+            //// Save glTF data to binary file
+
+            //foreach( int i in gltfVertexCoordinates )
+            //{
+            //  writer.Write( (float) i );
+            //}
+            //foreach( int i in gltfVertexIndices )
+            //{
+            //  Debug.Assert( ushort.MaxValue > i, 
+            //    "expected triangle vertex indices to fit into unsigned short" );
+            //  writer.Write( (ushort) i );
+            //}
           }
         }
       }
@@ -609,26 +606,31 @@ namespace RoomVolumeDirectShape
       List<RoomData> room_data = new List<RoomData>( 
         rooms.Count<Room>() );
 
-      // glTF binary data for vertex coordinates 
-      // and triangle vertex indices
+      // Collect geometry data for glTF: a list of 
+      // vertex coordinates in millimetres, and a list 
+      // of triangle vertex indices into the coord list.
 
-      string gltfbinfilepath = Path.Combine(
-        Path.GetTempPath(), _gltf_filename );
+      List<int> gltf_coords = new List<int>();
+      List<int> gltf_indices = new List<int>();
 
-      using( FileStream binfile = File.Create( _gltf_filename ) )
-      {
-        using( BinaryWriter writer = new BinaryWriter( binfile ) )
-        {
           using( Transaction tx = new Transaction( doc ) )
           {
             tx.Start( "Generate Direct Shape Elements "
               + "Representing Room Volumes" );
 
+            // Offsets to binary data for current room
+
+            int gltfCoordinatesBegin = 0;
+            int gltfVertexIndicesBegin = 0;
+
             foreach( Room r in rooms )
             {
-              Debug.Print( r.Name );
+              Debug.Print( "Processing " 
+                + r.Name + "..." );
 
-              RoomData rd = new RoomData( r );
+              RoomData rd = new RoomData( r, 
+                gltfCoordinatesBegin, 
+                gltfVertexIndicesBegin );
 
               GeometryElement geo = r.ClosedShell;
 
@@ -693,8 +695,12 @@ namespace RoomVolumeDirectShape
               IList<GeometryObject> shape
                 = geo.ToList<GeometryObject>();
 
-              shape = CopyGeometry(
-                geo, ElementId.InvalidElementId );
+              shape = CopyGeometry( rd, 
+                gltf_coords, gltf_indices, geo, 
+                ElementId.InvalidElementId );
+
+              gltfCoordinatesBegin += rd.CoordinatesCount;
+              gltfVertexIndicesBegin += rd.TriangleVertexIndexCount;
 
               Dictionary<string, string> param_values
                 = GetParamValues( r );
@@ -712,9 +718,20 @@ namespace RoomVolumeDirectShape
             }
             tx.Commit();
           }
+
+      // glTF binary data for vertex coordinates 
+      // and triangle vertex indices
+
+      string gltfbinfilepath = Path.Combine(
+        Path.GetTempPath(), _gltf_filename );
+
+      using( FileStream binfile = File.Create( _gltf_filename ) )
+      {
+        using( BinaryWriter writer = new BinaryWriter( binfile ) )
+        {
         }
       }
-      return Result.Succeeded;
+          return Result.Succeeded;
     }
   }
 }
