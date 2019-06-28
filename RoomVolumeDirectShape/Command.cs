@@ -628,6 +628,8 @@ namespace RoomVolumeDirectShape
             {
               Debug.Print( r.Name );
 
+              RoomData rd = new RoomData( r );
+
               GeometryElement geo = r.ClosedShell;
 
               Debug.Assert(
