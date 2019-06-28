@@ -237,7 +237,11 @@ namespace RoomVolumeDirectShape
     }
 
     /// <summary>
-    /// Create a new list of geometry objects from the given input
+    /// Create a new list of geometry objects from the 
+    /// given input. As input, we supply the result of 
+    /// Room.GetClosedShell. The output is the exact 
+    /// same solid lacking whatever flaws are present 
+    /// in the input solid.
     /// </summary>
     static IList<GeometryObject> CopyGeometry(
       GeometryElement geo,

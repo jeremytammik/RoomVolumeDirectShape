@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 // 2019-06-27 2020.0.0.6 added assertions
 // 2019-06-27 2020.0.0.6 created a new solid from the room closed shell using SolidUtils.TessellateSolidOrShell
 // 2019-06-27 2020.0.0.7 added code to generate glTF facet data
-// 2019-06-27 2020.0.0.7 store binary glTF facet data
+// 2019-06-27 2020.0.0.7 store glTF facet data to binary file
 //
 [assembly: AssemblyVersion( "2020.0.0.7" )]
 [assembly: AssemblyFileVersion( "2020.0.0.7" )]
