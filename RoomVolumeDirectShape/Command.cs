@@ -374,7 +374,7 @@ namespace RoomVolumeDirectShape
 
             n = component.VertexCount;
 
-            for(int i = 0; i < n;  ++i )
+            for( int i = 0; i < n; ++i )
             {
               XYZ v = component.GetVertex( i );
               coords.Add( FootToMm( v.X ) );
@@ -384,9 +384,9 @@ namespace RoomVolumeDirectShape
 
             n = component.TriangleCount;
 
-            for( int i = 0; i < n;  ++i )
+            for( int i = 0; i < n; ++i )
             {
-              TriangleInShellComponent t 
+              TriangleInShellComponent t
                 = component.GetTriangle( i );
 
               vertices.Clear();
@@ -551,30 +551,17 @@ namespace RoomVolumeDirectShape
               + "in millimetres:", n );
 
             Debug.Print( string.Join( " ", coords
-              .TakeWhile<int>((i,j) => coordsBegin<= j)
+              .TakeWhile<int>( ( i, j ) => coordsBegin <= j )
               .Select<int, string>( i => i.ToString() ) ) );
 
             n = indices.Count - indicesBegin;
 
             Debug.Print( "{0} glTF triangle vertex "
               + "indices:", n );
-              
+
             Debug.Print( string.Join( " ", indices
               .TakeWhile<int>( ( i, j ) => indicesBegin <= j )
               .Select<int, string>( i => i.ToString() ) ) );
-
-            //// Save glTF data to binary file
-
-            //foreach( int i in gltfVertexCoordinates )
-            //{
-            //  writer.Write( (float) i );
-            //}
-            //foreach( int i in gltfVertexIndices )
-            //{
-            //  Debug.Assert( ushort.MaxValue > i, 
-            //    "expected triangle vertex indices to fit into unsigned short" );
-            //  writer.Write( (ushort) i );
-            //}
           }
         }
       }
@@ -603,7 +590,7 @@ namespace RoomVolumeDirectShape
 
       // Collect room data for glTF export
 
-      List<RoomData> room_data = new List<RoomData>( 
+      List<RoomData> room_data = new List<RoomData>(
         rooms.Count<Room>() );
 
       // Collect geometry data for glTF: a list of 
@@ -613,34 +600,34 @@ namespace RoomVolumeDirectShape
       List<int> gltf_coords = new List<int>();
       List<int> gltf_indices = new List<int>();
 
-          using( Transaction tx = new Transaction( doc ) )
-          {
-            tx.Start( "Generate Direct Shape Elements "
-              + "Representing Room Volumes" );
+      using( Transaction tx = new Transaction( doc ) )
+      {
+        tx.Start( "Generate Direct Shape Elements "
+          + "Representing Room Volumes" );
 
-            // Offsets to binary data for current room
+        // Offsets to binary data for current room
 
-            int gltfCoordinatesBegin = 0;
-            int gltfVertexIndicesBegin = 0;
+        int gltfCoordinatesBegin = 0;
+        int gltfVertexIndicesBegin = 0;
 
-            foreach( Room r in rooms )
-            {
-              Debug.Print( "Processing " 
-                + r.Name + "..." );
+        foreach( Room r in rooms )
+        {
+          Debug.Print( "Processing "
+            + r.Name + "..." );
 
-              RoomData rd = new RoomData( r, 
-                gltfCoordinatesBegin, 
-                gltfVertexIndicesBegin );
+          RoomData rd = new RoomData( r,
+            gltfCoordinatesBegin,
+            gltfVertexIndicesBegin );
 
-              GeometryElement geo = r.ClosedShell;
+          GeometryElement geo = r.ClosedShell;
 
-              Debug.Assert(
-                geo.First<GeometryObject>() is Solid,
-                "expected a solid for room closed shell" );
+          Debug.Assert(
+            geo.First<GeometryObject>() is Solid,
+            "expected a solid for room closed shell" );
 
-              Solid solid = geo.First<GeometryObject>() as Solid;
+          Solid solid = geo.First<GeometryObject>() as Solid;
 
-              #region Fix the shape
+          #region Fix the shape
 #if FIX_THE_SHAPE_SOMEHOW
           // Create IList step by step
 
@@ -690,37 +677,37 @@ namespace RoomVolumeDirectShape
 
           shape = new GeometryObject[] { solid, sphere };
 #endif // #if FIX_THE_SHAPE_SOMEHOW
-              #endregion // Fix the shape
+          #endregion // Fix the shape
 
-              IList<GeometryObject> shape
-                = geo.ToList<GeometryObject>();
+          IList<GeometryObject> shape
+            = geo.ToList<GeometryObject>();
 
-              shape = CopyGeometry( rd, 
-                gltf_coords, gltf_indices, geo, 
-                ElementId.InvalidElementId );
+          shape = CopyGeometry( rd,
+            gltf_coords, gltf_indices, geo,
+            ElementId.InvalidElementId );
 
-              gltfCoordinatesBegin += rd.CoordinatesCount;
-              gltfVertexIndicesBegin += rd.TriangleVertexIndexCount;
+          gltfCoordinatesBegin += rd.CoordinatesCount;
+          gltfVertexIndicesBegin += rd.TriangleVertexIndexCount;
 
-              Dictionary<string, string> param_values
-                = GetParamValues( r );
+          Dictionary<string, string> param_values
+            = GetParamValues( r );
 
-              string json = FormatDictAsJson( param_values );
+          string json = FormatDictAsJson( param_values );
 
-              DirectShape ds = DirectShape.CreateElement(
-                doc, _id_category_for_direct_shape );
+          DirectShape ds = DirectShape.CreateElement(
+            doc, _id_category_for_direct_shape );
 
-              ds.ApplicationId = id_addin;
-              ds.ApplicationDataId = r.UniqueId;
-              ds.SetShape( shape );
-              ds.get_Parameter( _bip_properties ).Set( json );
-              ds.Name = "Room volume for " + r.Name;
-            }
-            tx.Commit();
-          }
+          ds.ApplicationId = id_addin;
+          ds.ApplicationDataId = r.UniqueId;
+          ds.SetShape( shape );
+          ds.get_Parameter( _bip_properties ).Set( json );
+          ds.Name = "Room volume for " + r.Name;
+        }
+        tx.Commit();
+      }
 
-      // glTF binary data for vertex coordinates 
-      // and triangle vertex indices
+      // Save glTF binary data for vertex coordinates 
+      // and triangle vertex indices to binary file
 
       string gltfbinfilepath = Path.Combine(
         Path.GetTempPath(), _gltf_filename );
@@ -729,9 +716,21 @@ namespace RoomVolumeDirectShape
       {
         using( BinaryWriter writer = new BinaryWriter( binfile ) )
         {
+          foreach( int i in gltf_coords )
+          {
+            writer.Write( (float) i );
+          }
+          foreach( int i in gltf_indices )
+          {
+            Debug.Assert( ushort.MaxValue > i,
+              "expected vertex index to fit into unsigned short" );
+
+            writer.Write( (ushort) i );
+          }
+
         }
       }
-          return Result.Succeeded;
+      return Result.Succeeded;
     }
   }
 }
