@@ -545,7 +545,8 @@ namespace RoomVolumeDirectShape
 
             // Log glTF data
 
-            n = coords.Count - coordsBegin;
+            rd.CoordinatesCount = n 
+              = coords.Count - coordsBegin;            
 
             Debug.Print( "{0} glTF vertex coordinates "
               + "in millimetres:", n );
@@ -554,7 +555,8 @@ namespace RoomVolumeDirectShape
               .TakeWhile<int>( ( i, j ) => coordsBegin <= j )
               .Select<int, string>( i => i.ToString() ) ) );
 
-            n = indices.Count - indicesBegin;
+            rd.TriangleVertexIndexCount = n 
+              = indices.Count - indicesBegin;
 
             Debug.Print( "{0} glTF triangle vertex "
               + "indices:", n );
