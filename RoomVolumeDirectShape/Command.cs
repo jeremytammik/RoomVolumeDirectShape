@@ -264,8 +264,8 @@ namespace RoomVolumeDirectShape
         = new Dictionary<XYZ, KeyValuePair<XYZ, int>>(
           new XyzEqualityComparer() );
 
-      int coordsBegin = coords.Count;
-      int indicesBegin = indices.Count;
+      rd.CoordinatesBegin = coords.Count;
+      rd.TriangleVertexIndicesBegin = indices.Count;
 
       int nSolids = 0;
       //int nFaces = 0;
@@ -556,7 +556,7 @@ namespace RoomVolumeDirectShape
               + "in millimetres:", n );
 
             Debug.Print( string.Join( " ", coords
-              .TakeWhile<int>( ( i, j ) => coordsBegin <= j )
+              .TakeWhile<int>( ( i, j ) => coordsBase <= j )
               .Select<int, string>( i => i.ToString() ) ) );
 
             n = indices.Count - indicesBase;
@@ -565,14 +565,16 @@ namespace RoomVolumeDirectShape
               + "indices:", n );
 
             Debug.Print( string.Join( " ", indices
-              .TakeWhile<int>( ( i, j ) => indicesBegin <= j )
+              .TakeWhile<int>( ( i, j ) => indicesBase <= j )
               .Select<int, string>( i => i.ToString() ) ) );
           }
         }
       }
-      rd.CoordinatesCount = coords.Count - coordsBegin;
+      rd.CoordinatesCount = coords.Count 
+        - rd.CoordinatesBegin;
+
       rd.TriangleVertexIndexCount = indices.Count 
-        - indicesBegin;
+        - rd.TriangleVertexIndicesBegin;
 
       return result.GetGeometricalObjects();
     }
