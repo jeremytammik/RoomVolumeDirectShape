@@ -37,10 +37,10 @@ namespace RoomVolumeDirectShape
     BuiltInParameter _bip_properties
       = BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS;
 
-    /// <summary>
-    /// Export binary glTF facet data
-    /// </summary>
-    const string _gltf_filename = "roomvolumegltf.bin";
+    ///// <summary>
+    ///// Export binary glTF facet data
+    ///// </summary>
+    //const string _gltf_filename = "roomvolumegltf.bin";
 
     const double _inch_to_mm = 25.4;
     const double _foot_to_mm = 12 * _inch_to_mm;
@@ -710,7 +710,7 @@ namespace RoomVolumeDirectShape
       // and triangle vertex indices to binary file
 
       string path = Path.Combine(
-        Path.GetTempPath(), _gltf_filename );
+        Path.GetTempPath(), doc.Title + "_gltf" );
 
       using( StreamWriter s = new StreamWriter( 
         path + ".txt" ) )
