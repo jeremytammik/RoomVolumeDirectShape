@@ -726,6 +726,10 @@ namespace RoomVolumeDirectShape
       using( StreamWriter s = new StreamWriter( 
         path + ".txt" ) )
       {
+        int n = room_data.Count;
+
+        s.Write( "{0} room{1}", n, ( ( 1 == n ) ? "" : "s" ) );
+
         foreach( RoomData rd in room_data )
         {
           s.Write( rd.ToString() );
