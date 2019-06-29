@@ -245,11 +245,10 @@ namespace RoomVolumeDirectShape
     /// in the input solid.
     /// </summary>
     static IList<GeometryObject> CopyGeometry(
-      GltfNodeData rd,
-      List<int> coords,
-      List<int> indices,
       GeometryElement geo,
-      ElementId materialId )
+      ElementId materialId,
+      List<int> coords,
+      List<int> indices )
     {
       TessellatedShapeBuilderResult result = null;
 
@@ -263,9 +262,6 @@ namespace RoomVolumeDirectShape
       Dictionary<XYZ, KeyValuePair<XYZ, int>> pts
         = new Dictionary<XYZ, KeyValuePair<XYZ, int>>(
           new XyzEqualityComparer() );
-
-      rd.CoordinatesBegin = coords.Count;
-      rd.TriangleVertexIndicesBegin = indices.Count;
 
       int nSolids = 0;
       //int nFaces = 0;
@@ -570,12 +566,6 @@ namespace RoomVolumeDirectShape
           }
         }
       }
-      rd.CoordinatesCount = coords.Count 
-        - rd.CoordinatesBegin;
-
-      rd.TriangleVertexIndexCount = indices.Count 
-        - rd.TriangleVertexIndicesBegin;
-
       return result.GetGeometricalObjects();
     }
 
@@ -616,19 +606,14 @@ namespace RoomVolumeDirectShape
         tx.Start( "Generate Direct Shape Elements "
           + "Representing Room Volumes" );
 
-        // Offsets to binary data for current room
-
-        int gltfCoordinatesBegin = 0;
-        int gltfVertexIndicesBegin = 0;
-
         foreach( Room r in rooms )
         {
           Debug.Print( "Processing "
             + r.Name + "..." );
 
-          GltfNodeData rd = new GltfNodeData( r,
-            gltfCoordinatesBegin,
-            gltfVertexIndicesBegin );
+          // Collect data for current room
+
+          GltfNodeData rd = new GltfNodeData( r );
 
           GeometryElement geo = r.ClosedShell;
 
@@ -693,12 +678,23 @@ namespace RoomVolumeDirectShape
           IList<GeometryObject> shape
             = geo.ToList<GeometryObject>();
 
-          shape = CopyGeometry( rd,
-            gltf_coords, gltf_indices, geo,
-            ElementId.InvalidElementId );
+          // Previous counts define offsets 
+          // to new binary data
 
-          gltfCoordinatesBegin += rd.CoordinatesCount;
-          gltfVertexIndicesBegin += rd.TriangleVertexIndexCount;
+          rd.CoordinatesBegin = gltf_coords.Count;
+          rd.TriangleVertexIndicesBegin
+            = gltf_indices.Count;
+
+          shape = CopyGeometry( geo,
+            ElementId.InvalidElementId,
+            gltf_coords, gltf_indices );
+
+          rd.CoordinatesCount = gltf_coords.Count 
+            - rd.CoordinatesBegin;
+
+          rd.TriangleVertexIndexCount 
+            = gltf_indices.Count 
+              - rd.TriangleVertexIndicesBegin;
 
           Dictionary<string, string> param_values
             = GetParamValues( r );

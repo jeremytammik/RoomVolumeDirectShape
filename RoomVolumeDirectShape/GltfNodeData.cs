@@ -27,17 +27,14 @@ namespace RoomVolumeDirectShape
     public int TriangleVertexIndicesBegin { get; set; }
     public int TriangleVertexIndexCount { get; set; }
 
-    public GltfNodeData( 
-      Room r,
-      int coordinatesBegin,
-      int triangleVertexIndicesBegin )
+    public GltfNodeData( Room r )
     {
       ElementId = r.Id.IntegerValue;
       UniqueId = r.UniqueId;
       RoomName = r.Name;
-      CoordinatesBegin = coordinatesBegin;
-      TriangleVertexIndicesBegin 
-        = triangleVertexIndicesBegin;
+      //CoordinatesBegin = coordinatesBegin;
+      //TriangleVertexIndicesBegin 
+      //  = triangleVertexIndicesBegin;
     }
   }
 }
