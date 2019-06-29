@@ -11,7 +11,7 @@ namespace RoomVolumeDirectShape
   /// (byte or object coount?), 
   /// min and max x, y, z coord values
   /// </summary>
-  class RoomData
+  class GltfNodeData
   {
     public int ElementId { get; set; }
     public string UniqueId { get; set; }
@@ -27,7 +27,7 @@ namespace RoomVolumeDirectShape
     public int TriangleVertexIndicesBegin { get; set; }
     public int TriangleVertexIndexCount { get; set; }
 
-    public RoomData( 
+    public GltfNodeData( 
       Room r,
       int coordinatesBegin,
       int triangleVertexIndicesBegin )

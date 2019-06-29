@@ -245,7 +245,7 @@ namespace RoomVolumeDirectShape
     /// in the input solid.
     /// </summary>
     static IList<GeometryObject> CopyGeometry(
-      RoomData rd,
+      GltfNodeData rd,
       List<int> coords,
       List<int> indices,
       GeometryElement geo,
@@ -601,7 +601,7 @@ namespace RoomVolumeDirectShape
 
       // Collect room data for glTF export
 
-      List<RoomData> room_data = new List<RoomData>(
+      List<GltfNodeData> room_data = new List<GltfNodeData>(
         rooms.Count<Room>() );
 
       // Collect geometry data for glTF: a list of 
@@ -626,7 +626,7 @@ namespace RoomVolumeDirectShape
           Debug.Print( "Processing "
             + r.Name + "..." );
 
-          RoomData rd = new RoomData( r,
+          GltfNodeData rd = new GltfNodeData( r,
             gltfCoordinatesBegin,
             gltfVertexIndicesBegin );
 
@@ -730,7 +730,7 @@ namespace RoomVolumeDirectShape
 
         s.Write( "{0} room{1}", n, ( ( 1 == n ) ? "" : "s" ) );
 
-        foreach( RoomData rd in room_data )
+        foreach( GltfNodeData rd in room_data )
         {
           s.Write( rd.ToString() );
         }
