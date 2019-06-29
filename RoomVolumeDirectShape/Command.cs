@@ -683,12 +683,14 @@ namespace RoomVolumeDirectShape
             = gltf_coords.TakeWhile<IntPoint3d>(
               ( p, i ) => rd.CoordinatesBegin <= i );
 
-          rd.Min.X = pts.Min<IntPoint3d, int>( p => p.X );
-          rd.Min.Y = pts.Min<IntPoint3d, int>( p => p.Y );
-          rd.Min.Z = pts.Min<IntPoint3d, int>( p => p.Z );
-          rd.Max.X = pts.Max<IntPoint3d, int>( p => p.X );
-          rd.Max.Y = pts.Max<IntPoint3d, int>( p => p.Y );
-          rd.Max.Z = pts.Max<IntPoint3d, int>( p => p.Z );
+          rd.Min = new IntPoint3d(
+            pts.Min<IntPoint3d, int>( p => p.X ),
+            pts.Min<IntPoint3d, int>( p => p.Y ),
+            pts.Min<IntPoint3d, int>( p => p.Z ) );
+          rd.Max = new IntPoint3d(
+            pts.Max<IntPoint3d, int>( p => p.X ),
+            pts.Max<IntPoint3d, int>( p => p.Y ),
+            pts.Max<IntPoint3d, int>( p => p.Z ) );
 
           Dictionary<string, string> param_values
             = GetParamValues( r );
