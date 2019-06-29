@@ -52,8 +52,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command.cs" />
+    <Compile Include="IntPoint3d.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GltfNodeData.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="RoomVolumeDirectShape.addin" />

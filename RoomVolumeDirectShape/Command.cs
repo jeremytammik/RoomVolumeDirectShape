@@ -696,6 +696,10 @@ namespace RoomVolumeDirectShape
             = gltf_indices.Count 
               - rd.TriangleVertexIndicesBegin;
 
+          IEnumerable<int> new_coords = gltf_coords
+            .TakeWhile<int>( ( i, j ) 
+              => rd.CoordinatesBegin <= j );
+
           Dictionary<string, string> param_values
             = GetParamValues( r );
 
