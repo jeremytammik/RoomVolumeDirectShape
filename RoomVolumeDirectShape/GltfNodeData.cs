@@ -14,8 +14,8 @@ namespace RoomVolumeDirectShape
   class GltfNodeData
   {
     public int ElementId { get; set; }
-    public string UniqueId { get; set; }
     public string RoomName { get; set; }
+    public string UniqueId { get; set; }
     public IntPoint3d Min { get; set; }
     public IntPoint3d Max { get; set; }
     public int CoordinatesBegin { get; set; }
@@ -31,6 +31,24 @@ namespace RoomVolumeDirectShape
       //CoordinatesBegin = coordinatesBegin;
       //TriangleVertexIndicesBegin 
       //  = triangleVertexIndicesBegin;
+    }
+
+    /// <summary>
+    /// Display as a string.
+    /// </summary>
+    public override string ToString()
+    {
+      return string.Format( 
+        "{0},{1},{2},{3},{4},{5},{6},{7},{8}",
+        ElementId,
+        UniqueId,
+        RoomName,
+        Min,
+        Max,
+        CoordinatesBegin,
+        CoordinatesCount,
+        TriangleVertexIndicesBegin,
+        TriangleVertexIndexCount );
     }
   }
 }
