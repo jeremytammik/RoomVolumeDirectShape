@@ -680,8 +680,8 @@ namespace RoomVolumeDirectShape
               - rd.TriangleVertexIndicesBegin;
 
           IEnumerable<IntPoint3d> pts
-            = gltf_coords.TakeWhile<IntPoint3d>(
-              ( p, i ) => rd.CoordinatesBegin <= i );
+            = gltf_coords.Skip<IntPoint3d>( 
+              rd.CoordinatesBegin );
 
           rd.Min = new IntPoint3d(
             pts.Min<IntPoint3d, int>( p => p.X ),

@@ -47,6 +47,7 @@ using System.Runtime.InteropServices;
 // 2019-06-27 2020.0.0.7 store glTF facet data to binary file
 // 2019-06-29 2020.0.0.8 implemented gltf data export for multiple rooms
 // 2019-06-29 2020.0.0.9 corrected min max calculation
+// 2019-06-29 2020.0.0.10 corrected min max calculation
 //
-[assembly: AssemblyVersion( "2020.0.0.9" )]
-[assembly: AssemblyFileVersion( "2020.0.0.9" )]
+[assembly: AssemblyVersion( "2020.0.0.10" )]
+[assembly: AssemblyFileVersion( "2020.0.0.10" )]
