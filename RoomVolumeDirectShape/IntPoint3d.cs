@@ -1,7 +1,5 @@
 ﻿using System;
 using Autodesk.Revit.DB;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace RoomVolumeDirectShape
 {

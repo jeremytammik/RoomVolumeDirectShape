@@ -681,14 +681,14 @@ namespace RoomVolumeDirectShape
 
           IEnumerable<IntPoint3d> pts
             = gltf_coords.TakeWhile<IntPoint3d>(
-              ( q, i ) => rd.CoordinatesBegin <= i );
+              ( p, i ) => rd.CoordinatesBegin <= i );
 
-          rd.Min.X = pts.Min<IntPoint3d, int>( q => q.X );
-          rd.Min.Y = pts.Min<IntPoint3d, int>( q => q.Y );
-          rd.Min.Z = pts.Min<IntPoint3d, int>( q => q.Z );
-          rd.Max.X = pts.Max<IntPoint3d, int>( q => q.X );
-          rd.Max.Y = pts.Max<IntPoint3d, int>( q => q.Y );
-          rd.Max.Z = pts.Max<IntPoint3d, int>( q => q.Z );
+          rd.Min.X = pts.Min<IntPoint3d, int>( p => p.X );
+          rd.Min.Y = pts.Min<IntPoint3d, int>( p => p.Y );
+          rd.Min.Z = pts.Min<IntPoint3d, int>( p => p.Z );
+          rd.Max.X = pts.Max<IntPoint3d, int>( p => p.X );
+          rd.Max.Y = pts.Max<IntPoint3d, int>( p => p.Y );
+          rd.Max.Z = pts.Max<IntPoint3d, int>( p => p.Z );
 
           Dictionary<string, string> param_values
             = GetParamValues( r );
