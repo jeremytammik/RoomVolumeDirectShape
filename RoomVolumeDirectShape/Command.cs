@@ -247,8 +247,8 @@ namespace RoomVolumeDirectShape
     static IList<GeometryObject> CopyGeometry(
       GeometryElement geo,
       ElementId materialId,
-      List<int> coords,
-      List<int> indices )
+      List<IntPoint3d> coords,
+      List<TriangleIndices> indices )
     {
       TessellatedShapeBuilderResult result = null;
 
@@ -377,9 +377,7 @@ namespace RoomVolumeDirectShape
             for( int i = 0; i < n; ++i )
             {
               XYZ v = component.GetVertex( i );
-              coords.Add( FootToMm( v.X ) );
-              coords.Add( FootToMm( v.Y ) );
-              coords.Add( FootToMm( v.Z ) );
+              coords.Add( new IntPoint3d( v ) );
             }
 
             n = component.TriangleCount;
@@ -395,9 +393,10 @@ namespace RoomVolumeDirectShape
               vertices.Add( component.GetVertex( t.VertexIndex1 ) );
               vertices.Add( component.GetVertex( t.VertexIndex2 ) );
 
-              indices.Add( coordsBase + t.VertexIndex0 );
-              indices.Add( coordsBase + t.VertexIndex1 );
-              indices.Add( coordsBase + t.VertexIndex2 );
+              indices.Add( new TriangleIndices(
+                coordsBase + t.VertexIndex0,
+                coordsBase + t.VertexIndex1,
+                coordsBase + t.VertexIndex2 ) );
 
               TessellatedFace tf = new TessellatedFace(
                 vertices, materialId );
@@ -552,17 +551,16 @@ namespace RoomVolumeDirectShape
               + "in millimetres:", n );
 
             Debug.Print( string.Join( " ", coords
-              .TakeWhile<int>( ( i, j ) => coordsBase <= j )
-              .Select<int, string>( i => i.ToString() ) ) );
+              .TakeWhile<IntPoint3d>( ( p, i ) => coordsBase <= i )
+              .Select<IntPoint3d, string>( p => p.ToString() ) ) );
 
             n = indices.Count - indicesBase;
 
-            Debug.Print( "{0} glTF triangle vertex "
-              + "indices:", n );
+            Debug.Print( "{0} glTF triangles:", n );
 
             Debug.Print( string.Join( " ", indices
-              .TakeWhile<int>( ( i, j ) => indicesBase <= j )
-              .Select<int, string>( i => i.ToString() ) ) );
+              .TakeWhile<TriangleIndices>( ( ti, i ) => indicesBase <= i )
+              .Select<TriangleIndices, string>( ti => ti.ToString() ) ) );
           }
         }
       }
@@ -598,8 +596,8 @@ namespace RoomVolumeDirectShape
       // vertex coordinates in millimetres, and a list 
       // of triangle vertex indices into the coord list.
 
-      List<int> gltf_coords = new List<int>();
-      List<int> gltf_indices = new List<int>();
+      List<IntPoint3d> gltf_coords = new List<IntPoint3d>();
+      List<TriangleIndices> gltf_indices = new List<TriangleIndices>();
 
       using( Transaction tx = new Transaction( doc ) )
       {
@@ -696,9 +694,12 @@ namespace RoomVolumeDirectShape
             = gltf_indices.Count 
               - rd.TriangleVertexIndicesBegin;
 
-          IEnumerable<int> new_coords = gltf_coords
-            .TakeWhile<int>( ( i, j ) 
-              => rd.CoordinatesBegin <= j );
+          IEnumerable<IntPoint3d> new_coords
+            = gltf_coords.TakeWhile<IntPoint3d>(
+              ( p, i ) => rd.CoordinatesBegin <= i );
+
+          rd.Max = new_coords.Max<IntPoint3d>();
+          rd.Min = new_coords.Min<IntPoint3d>();
 
           Dictionary<string, string> param_values
             = GetParamValues( r );
@@ -740,16 +741,21 @@ namespace RoomVolumeDirectShape
       {
         using( BinaryWriter writer = new BinaryWriter( f ) )
         {
-          foreach( int i in gltf_coords )
+          foreach( IntPoint3d p in gltf_coords )
           {
-            writer.Write( (float) i );
+            writer.Write( (float) p.X );
+            writer.Write( (float) p.Y );
+            writer.Write( (float) p.Z );
           }
-          foreach( int i in gltf_indices )
+          foreach( TriangleIndices ti in gltf_indices )
           {
-            Debug.Assert( ushort.MaxValue > i,
-              "expected vertex index to fit into unsigned short" );
+            foreach( int i in ti.Indices )
+            {
+              Debug.Assert( ushort.MaxValue > i,
+                "expected vertex index to fit into unsigned short" );
 
-            writer.Write( (ushort) i );
+              writer.Write( (ushort) i );
+            }
           }
         }
       }
