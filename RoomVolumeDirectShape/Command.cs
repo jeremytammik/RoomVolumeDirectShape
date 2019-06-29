@@ -12,7 +12,6 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using System.IO;
-using Autodesk.Revit.DB.Structure;
 #endregion
 
 namespace RoomVolumeDirectShape
@@ -36,24 +35,6 @@ namespace RoomVolumeDirectShape
     /// </summary>
     BuiltInParameter _bip_properties
       = BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS;
-
-    ///// <summary>
-    ///// Export binary glTF facet data
-    ///// </summary>
-    //const string _gltf_filename = "roomvolumegltf.bin";
-
-    const double _inch_to_mm = 25.4;
-    const double _foot_to_mm = 12 * _inch_to_mm;
-
-    /// <summary>
-    /// Convert Revit database length in imperial feet 
-    /// to integer millimetre value
-    /// </summary>
-    static int FootToMm( double length )
-    {
-      return (int) Math.Round( _foot_to_mm * length,
-        MidpointRounding.AwayFromZero );
-    }
 
     /// <summary>
     /// Return a JSON string representing a dictionary
@@ -543,7 +524,7 @@ namespace RoomVolumeDirectShape
             builder.Build();
             result = builder.GetBuildResult();
 
-            // Log glTF data
+            // Debug printout log of current solid's glTF facet data
 
             n = coords.Count - coordsBase;            
 
@@ -683,6 +664,10 @@ namespace RoomVolumeDirectShape
           rd.TriangleVertexIndicesBegin
             = gltf_indices.Count;
 
+          // Create a new solid to use for the direct 
+          // shape from the flawed solid returned by
+          // GetClosedShell and gather glTF facet data
+
           shape = CopyGeometry( geo,
             ElementId.InvalidElementId,
             gltf_coords, gltf_indices );
@@ -718,8 +703,9 @@ namespace RoomVolumeDirectShape
         tx.Commit();
       }
 
-      // Save glTF binary data for vertex coordinates 
-      // and triangle vertex indices to binary file
+      // Save glTF text and binary data to two files; 
+      // metadata, min, max, buffer information; 
+      // vertex coordinates and triangle indices
 
       string path = Path.Combine(
         Path.GetTempPath(), doc.Title + "_gltf" );

@@ -45,7 +45,7 @@ using System.Runtime.InteropServices;
 // 2019-06-27 2020.0.0.6 created a new solid from the room closed shell using SolidUtils.TessellateSolidOrShell
 // 2019-06-27 2020.0.0.7 added code to generate glTF facet data
 // 2019-06-27 2020.0.0.7 store glTF facet data to binary file
-// 2019-06-28 2020.0.0.8 preparing to store gltf data for all rooms
+// 2019-06-28 2020.0.0.8 implemented gltf data export for multiple rooms
 //
 [assembly: AssemblyVersion( "2020.0.0.8" )]
 [assembly: AssemblyFileVersion( "2020.0.0.8" )]

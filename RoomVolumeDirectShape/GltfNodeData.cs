@@ -1,5 +1,4 @@
 ﻿using Autodesk.Revit.DB.Architecture;
-using System;
 
 namespace RoomVolumeDirectShape
 {
@@ -28,9 +27,6 @@ namespace RoomVolumeDirectShape
       ElementId = r.Id.IntegerValue;
       UniqueId = r.UniqueId;
       RoomName = r.Name;
-      //CoordinatesBegin = coordinatesBegin;
-      //TriangleVertexIndicesBegin 
-      //  = triangleVertexIndicesBegin;
     }
 
     /// <summary>

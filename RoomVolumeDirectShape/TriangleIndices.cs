@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RoomVolumeDirectShape
+﻿namespace RoomVolumeDirectShape
 {
   class TriangleIndices
   {
@@ -19,6 +17,5 @@ namespace RoomVolumeDirectShape
       return string.Format( "({0},{1},{2})", 
         Indices[0], Indices[1], Indices[2] );
     }
-
   }
 }
