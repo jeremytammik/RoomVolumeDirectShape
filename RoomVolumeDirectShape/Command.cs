@@ -699,6 +699,7 @@ namespace RoomVolumeDirectShape
           ds.SetShape( shape );
           ds.get_Parameter( _bip_properties ).Set( json );
           ds.Name = "Room volume for " + r.Name;
+          room_data.Add( rd );
         }
         tx.Commit();
       }
@@ -707,29 +708,36 @@ namespace RoomVolumeDirectShape
       // metadata, min, max, buffer information; 
       // vertex coordinates and triangle indices
 
-      string path = Path.Combine(
-        Path.GetTempPath(), doc.Title + "_gltf" );
+      // Path.GetTempPath() returns a weird subdirectory 
+      // created by Revit, so we will not use that here, e.g.,
+      // C:\Users\tammikj\AppData\Local\Temp\bfd59506-2dff-4b0f-bbe4-31587fcaf508
+
+      //string path = Path.GetTempPath();
+
+      string path = "C:/tmp";
+
+      path = Path.Combine( path, doc.Title + "_gltf" );
 
       using( StreamWriter s = new StreamWriter( 
         path + ".txt" ) )
       {
         int n = room_data.Count;
 
-        s.Write( "{0} room{1}", n, ( ( 1 == n ) ? "" : "s" ) );
-        s.Write( "{0},{1},{2},{3},{4},{5},{6},{7},{8}",
-          "ElementId",
-          "UniqueId",
-          "RoomName",
-          "Min",
-          "Max",
-          "CoordinatesBegin",
-          "CoordinatesCount",
-          "TriangleVertexIndicesBegin",
-          "TriangleVertexIndexCount" );
+        s.WriteLine( "{0} room{1}", n, ( ( 1 == n ) ? "" : "s" ) );
+        s.WriteLine( "{0},{1},{2},{3},{4},{5},{6},{7},{8}",
+          "id", // "ElementId",
+          "uid", // "UniqueId",
+          "name", // "RoomName",
+          "min",
+          "max",
+          "coord begin", // "CoordinatesBegin",
+          "count", // "CoordinatesCount",
+          "indices begin", // "TriangleVertexIndicesBegin",
+          "count" ); // "TriangleVertexIndexCount"
 
         foreach( GltfNodeData rd in room_data )
         {
-          s.Write( rd.ToString() );
+          s.WriteLine( rd.ToString() );
         }
       }
 
